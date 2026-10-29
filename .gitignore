@@ -1,0 +1,26 @@
+# Dependencies and generated output
+node_modules/
+**/node_modules/
+web/dist/
+web/.vite-cache/
+.vite-cache/
+coverage/
+output/
+tmp/
+
+# Local environment files and credentials
+.env
+.env.*
+**/.env
+**/.env.*
+!**/.env.example
+*.local
+
+# Local Supabase state
+supabase/.temp/
+supabase/.branches/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+Desktop.ini

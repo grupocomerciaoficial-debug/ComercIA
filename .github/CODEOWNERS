@@ -1,0 +1,13 @@
+# Pendiente: sustituir los nombres por usuarios o equipos de GitHub válidos.
+# No activar revisiones obligatorias de Code Owners hasta completar los handles.
+# /supabase/              @usuario-github-camilo
+# /n8n/                   @usuario-github-sneider
+# /web/src/features/auth/ @usuario-github-sofi
+# /web/src/features/admin/ @usuario-github-sofi
+# /web/src/features/comercio/ @usuario-github-sofi
+# /web/src/features/catalogo/ @usuario-github-sofi
+# /web/src/features/guia/ @usuario-github-sofi
+# /web/src/features/pedidos/ @usuario-github-fabian
+# /web/src/features/bandeja/ @usuario-github-fabian
+# /qa/                    @usuario-github-cristian
+# /docs/                  @usuario-github-cristian

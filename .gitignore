@@ -19,6 +19,7 @@ tmp/
 # Local Supabase state
 supabase/.temp/
 supabase/.branches/
+supabase/seed.berakah.local.sql
 
 # Operating system files
 .DS_Store

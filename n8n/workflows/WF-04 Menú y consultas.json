@@ -1,0 +1,2291 @@
+{
+  "name": "WF-04 Menú y consultas",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "comercio",
+              "type": "object"
+            },
+            {
+              "name": "mensaje",
+              "type": "object"
+            },
+            {
+              "name": "conversacion",
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "id": "c847734c-4779-48ce-982f-5377a7660910",
+      "name": "Entrada",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx=$input.first().json; const t=((ctx.mensaje&&ctx.mensaje.texto)||'').trim(); const k=t.toLowerCase();\nconst mapa={OP_PEDIDO:'pedido',OP_CATALOGO:'catalogo',OP_ESTADO:'estado_pedido',OP_FAQ:'faq_pedir',OP_PERSONA:'persona',MENU:'menu','menu':'menu','menú':'menu'};\nlet opcion=mapa[t]||mapa[k]||null;\nif(!opcion&&ctx.conversacion&&ctx.conversacion.estado==='FAQ')opcion='faq';\nreturn [{json:{...ctx,opcion,texto_libre:!opcion}}];"
+      },
+      "id": "ae6c2e8b-c527-4a38-81fb-9b9e8dfd580f",
+      "name": "Resolver opción",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "tl1",
+              "leftValue": "={{ $json.texto_libre }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "6a4a6b76-5de7-4c15-932e-00cfbe57048b",
+      "name": "¿Texto libre?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        448,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx=$input.first().json; return [{json:{...ctx,ia:{modo:'intencion',texto:ctx.mensaje.texto}}}];"
+      },
+      "id": "b2a5c12e-bdb8-42bc-94aa-3e9703b3ccea",
+      "name": "Preparar IA (intención)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "HpEgxy6fKhySOVB6",
+          "cachedResultName": "WF-05 Subflujo de IA",
+          "cachedResultUrl": "/workflow/HpEgxy6fKhySOVB6"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "accion": "ya_acepto",
+            "ia": "={{ $json.ia }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "accion",
+              "displayName": "accion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "ia",
+              "displayName": "ia",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "f90414c0-e622-44f7-a767-e2ae639eff89",
+      "name": "Interpretar con WF-05 (intención)",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        896,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx=$('Preparar IA (intención)').first().json; const r=$input.first().json;\nconst m={ver_catalogo:'catalogo',estado_pedido:'estado_pedido',pregunta_faq:'faq',hacer_pedido:'pedido',hablar_persona:'persona',ajeno:'ajeno'};\nconst op=(r.confianza>=0.6&&m[r.intencion])?m[r.intencion]:'no_entendido';\nreturn [{json:{...ctx,opcion:op}}];"
+      },
+      "id": "7248f5a0-c1ee-4755-95c4-7bcb7fc95443",
+      "name": "Mapear intención",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "rc0",
+                    "leftValue": "={{ $json.opcion===\"menu\" }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "menu"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "rc1",
+                    "leftValue": "={{ $json.opcion===\"catalogo\" }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "catalogo"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "rc2",
+                    "leftValue": "={{ $json.opcion===\"estado_pedido\" }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "estado_pedido"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "rc3",
+                    "leftValue": "={{ $json.opcion===\"faq_pedir\" }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "faq_pedir"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "rc4",
+                    "leftValue": "={{ $json.opcion===\"faq\" }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "faq"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "rc5",
+                    "leftValue": "={{ $json.opcion===\"pedido\" }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "pedido"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "rc6",
+                    "leftValue": "={{ $json.opcion===\"persona\" }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "persona"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "rc7",
+                    "leftValue": "={{ $json.opcion===\"ajeno\" }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ajeno"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "rc8",
+                    "leftValue": "={{ $json.opcion===\"no_entendido\" }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "no_entendido"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "613525b5-a7fb-474e-ae9d-a33af6ddf8d4",
+      "name": "Ruta de consulta",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1344,
+        528
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/rpc/reiniciar_estado",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({p_comercio_id:$('Entrada').first().json.comercio.id,p_wa_id:$('Entrada').first().json.mensaje.wa_id}) }}",
+        "options": {}
+      },
+      "id": "c23e3f11-2077-45b9-8020-91eb3d3b1420",
+      "name": "Reiniciar estado a MENÚ",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1616,
+        0
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "GHBSL4NZxzJsUKti",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx=$('Entrada').first().json;\nreturn [{json:{...ctx,wa:{tipo:'lista',texto:'Hola, soy el asistente virtual con IA del comercio. ¿Qué deseas hacer?',boton:'Ver opciones',filas:[{id:'OP_PEDIDO',titulo:'1. Hacer un pedido'},{id:'OP_CATALOGO',titulo:'2. Ver catálogo'},{id:'OP_ESTADO',titulo:'3. Estado de pedido'},{id:'OP_FAQ',titulo:'4. Preguntas frecuentes'},{id:'OP_PERSONA',titulo:'5. Hablar con persona'}]}}}];"
+      },
+      "id": "8f496a5f-a6e5-460e-b461-0a90197340dd",
+      "name": "Armar: Menú",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1840,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "u1U4Iam9WNRMZuo5",
+          "cachedResultName": "SUB-01 Enviar Telegram",
+          "cachedResultUrl": "/workflow/u1U4Iam9WNRMZuo5"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}",
+            "wa": "={{ $json.wa }}",
+            "autor": "bot",
+            "guardar_contenido": true
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "wa",
+              "displayName": "wa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "autor",
+              "displayName": "autor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "guardar_contenido",
+              "displayName": "guardar_contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "194dbffc-fede-4277-98c8-a68eced8c598",
+      "name": "Enviar: Menú",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2064,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/v_productos",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "comercio_id",
+              "value": "=eq.{{ $('Entrada').first().json.comercio.id }}"
+            },
+            {
+              "name": "eliminado",
+              "value": "eq.false"
+            },
+            {
+              "name": "select",
+              "value": "categoria,nombre,precio,disponible"
+            },
+            {
+              "name": "order",
+              "value": "categoria,nombre"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "aa8fb126-62c3-41af-aae4-a5a0302ddb61",
+      "name": "Leer catálogo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1616,
+        192
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "GHBSL4NZxzJsUKti",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows=$input.all().map(i=>i.json).filter(r=>r.nombre);\nif(!rows.length)return [{json:{texto_catalogo:'Por ahora no hay productos cargados.'}}];\nconst g={};rows.forEach(r=>{const c=r.categoria||'Otros';(g[c]=g[c]||[]).push(r)});\nlet t='*Catálogo*\\n';\nfor(const c in g){t+='\\n*'+c+'*\\n';g[c].forEach(p=>{t+='• '+p.nombre+' - $'+Number(p.precio).toLocaleString('es-CO')+(p.disponible?'':' (agotado)')+'\\n'})}\nreturn [{json:{texto_catalogo:t+'\\n¿Qué deseas hacer ahora?'}}];"
+      },
+      "id": "58868eed-022e-4ae5-ae64-706a88adc166",
+      "name": "Formatear catálogo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1840,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx=$('Entrada').first().json;\nconst r=$input.first().json;\nreturn [{json:{...ctx,wa:{tipo:'botones',texto:r.texto_catalogo,botones:[{id:'OP_PEDIDO',titulo:'Hacer un pedido'},{id:'MENU',titulo:'Volver al menú'}]}}}];"
+      },
+      "id": "323daec5-d7b9-403a-8ab7-4f8a2948f5d4",
+      "name": "Armar: Catálogo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2064,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "u1U4Iam9WNRMZuo5",
+          "cachedResultName": "SUB-01 Enviar Telegram",
+          "cachedResultUrl": "/workflow/u1U4Iam9WNRMZuo5"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}",
+            "wa": "={{ $json.wa }}",
+            "autor": "bot",
+            "guardar_contenido": true
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "wa",
+              "displayName": "wa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "autor",
+              "displayName": "autor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "guardar_contenido",
+              "displayName": "guardar_contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "626d9b5c-8052-4503-b980-220ef3dd13ec",
+      "name": "Enviar: Catálogo",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2288,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/v_pedidos_cliente",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "comercio_id",
+              "value": "=eq.{{ $('Entrada').first().json.comercio.id }}"
+            },
+            {
+              "name": "cliente_wa_id",
+              "value": "=eq.{{ $('Entrada').first().json.mensaje.wa_id }}"
+            },
+            {
+              "name": "order",
+              "value": "creado_en.desc"
+            },
+            {
+              "name": "limit",
+              "value": "3"
+            },
+            {
+              "name": "select",
+              "value": "numero,estado,total"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ca021213-7f14-4c24-acec-d968ac93ee4f",
+      "name": "Leer últimos pedidos del cliente",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1616,
+        384
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "GHBSL4NZxzJsUKti",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows=$input.all().map(i=>i.json).filter(r=>r.numero);\nconst t=rows.length?'Tus pedidos:\\n'+rows.map(p=>'#'+p.numero+': '+p.estado).join('\\n'):'No encontré pedidos a tu nombre.';\nreturn [{json:{texto_estado:t+'\\nEscribe menú para volver.'}}];"
+      },
+      "id": "7ba11e51-9a0d-4aa9-ac01-f7a78bc3b025",
+      "name": "Formatear estado",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1840,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx=$('Entrada').first().json;\nconst r=$input.first().json;\nreturn [{json:{...ctx,wa:{tipo:'texto',texto:r.texto_estado}}}];"
+      },
+      "id": "f31f7338-e11c-40a2-8450-9caabb31c17a",
+      "name": "Armar: Estado del pedido",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2064,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "u1U4Iam9WNRMZuo5",
+          "cachedResultName": "SUB-01 Enviar Telegram",
+          "cachedResultUrl": "/workflow/u1U4Iam9WNRMZuo5"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}",
+            "wa": "={{ $json.wa }}",
+            "autor": "bot",
+            "guardar_contenido": true
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "wa",
+              "displayName": "wa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "autor",
+              "displayName": "autor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "guardar_contenido",
+              "displayName": "guardar_contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "bef0ec4f-72e7-483c-879b-2c0328a78e79",
+      "name": "Enviar: Estado del pedido",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2288,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/rpc/set_estado",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({p_comercio_id:$('Entrada').first().json.comercio.id,p_wa_id:$('Entrada').first().json.mensaje.wa_id,p_estado:'FAQ'}) }}",
+        "options": {}
+      },
+      "id": "f53f9b5e-bb11-45a7-a7df-17703396f631",
+      "name": "Marcar estado FAQ",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1616,
+        576
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "GHBSL4NZxzJsUKti",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx=$('Entrada').first().json;\nreturn [{json:{...ctx,wa:{tipo:'texto',texto:'Escribe tu pregunta y la busco en la guía del comercio.'}}}];"
+      },
+      "id": "c281c5f1-1ee8-49f3-8e9c-65dae611102f",
+      "name": "Armar: Pedir pregunta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1840,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "u1U4Iam9WNRMZuo5",
+          "cachedResultName": "SUB-01 Enviar Telegram",
+          "cachedResultUrl": "/workflow/u1U4Iam9WNRMZuo5"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}",
+            "wa": "={{ $json.wa }}",
+            "autor": "bot",
+            "guardar_contenido": true
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "wa",
+              "displayName": "wa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "autor",
+              "displayName": "autor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "guardar_contenido",
+              "displayName": "guardar_contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "1a8db4d4-39ee-4582-b966-e74bf6bb1f2a",
+      "name": "Enviar: Pedir pregunta",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2064,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/guias",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "comercio_id",
+              "value": "=eq.{{ $('Entrada').first().json.comercio.id }}"
+            },
+            {
+              "name": "vigente",
+              "value": "eq.true"
+            },
+            {
+              "name": "limit",
+              "value": "1"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ce5f5e03-3aaf-4739-bfcb-40b821c93b76",
+      "name": "Leer guía vigente",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1616,
+        864
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "GHBSL4NZxzJsUKti",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx=$('Entrada').first().json; const g=$input.first().json; return [{json:{...ctx,ia:{modo:'guia',texto:ctx.mensaje.texto,guia:g.contenido||''}}}];"
+      },
+      "id": "6e01f4aa-3291-4868-9683-4299aa6d851e",
+      "name": "Preparar IA (guía)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1840,
+        864
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "HpEgxy6fKhySOVB6",
+          "cachedResultName": "WF-05 Subflujo de IA",
+          "cachedResultUrl": "/workflow/HpEgxy6fKhySOVB6"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "accion": "ya_acepto",
+            "ia": "={{ $json.ia }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "accion",
+              "displayName": "accion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "ia",
+              "displayName": "ia",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "0ec671d9-1180-4a2c-8d23-5256812d3a8f",
+      "name": "Responder con WF-05 (guía)",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2064,
+        864
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "eg1",
+              "leftValue": "={{ $json.encontrada_en_guia }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b491f6c2-d649-48d2-94ff-80601d1b9763",
+      "name": "¿Respuesta está en la guía?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2288,
+        864
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx=$('Entrada').first().json;\nconst r=$input.first().json;\nreturn [{json:{...ctx,wa:{tipo:'texto',texto:r.respuesta+'\\nEscribe menú para volver.'}}}];"
+      },
+      "id": "d5bbf3db-eb41-46d9-935c-ec74ce9e2566",
+      "name": "Armar: Respuesta de la guía",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2512,
+        768
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "u1U4Iam9WNRMZuo5",
+          "cachedResultName": "SUB-01 Enviar Telegram",
+          "cachedResultUrl": "/workflow/u1U4Iam9WNRMZuo5"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}",
+            "wa": "={{ $json.wa }}",
+            "autor": "bot",
+            "guardar_contenido": true
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "wa",
+              "displayName": "wa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "autor",
+              "displayName": "autor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "guardar_contenido",
+              "displayName": "guardar_contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "6b3a84d8-99f9-4150-8e18-35f24884f593",
+      "name": "Enviar: Respuesta de la guía",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2736,
+        768
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx=$('Entrada').first().json;\nreturn [{json:{...ctx,wa:{tipo:'botones',texto:'Eso no está en la guía del comercio. ¿Quieres hablar con una persona?',botones:[{id:'MENU',titulo:'Menú principal'},{id:'OP_PERSONA',titulo:'Hablar con persona'}]}}}];"
+      },
+      "id": "e1f89f3a-ef9c-4331-a3c4-e4fac06fe215",
+      "name": "Armar: No está en la guía",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2512,
+        960
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "u1U4Iam9WNRMZuo5",
+          "cachedResultName": "SUB-01 Enviar Telegram",
+          "cachedResultUrl": "/workflow/u1U4Iam9WNRMZuo5"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}",
+            "wa": "={{ $json.wa }}",
+            "autor": "bot",
+            "guardar_contenido": true
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "wa",
+              "displayName": "wa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "autor",
+              "displayName": "autor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "guardar_contenido",
+              "displayName": "guardar_contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "08ed5b2c-61bd-4706-b10b-46fe39de240b",
+      "name": "Enviar: No está en la guía",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2736,
+        960
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/rpc/iniciar_pedido",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({p_comercio_id:$('Entrada').first().json.comercio.id,p_wa_id:$('Entrada').first().json.mensaje.wa_id}) }}",
+        "options": {}
+      },
+      "id": "e64de5c2-5bb6-4ed0-b9fd-6fe8c2a6526d",
+      "name": "Iniciar pedido en construcción",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1616,
+        960
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "GHBSL4NZxzJsUKti",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx=$('Entrada').first().json; return [{json:{...ctx,conversacion:{...(ctx.conversacion||{}),estado:'PEDIDO_ITEMS'}}}];"
+      },
+      "id": "7be0f0f3-301d-495a-86bd-76bc8e187b23",
+      "name": "Contexto: pedido",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1840,
+        960
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "BU8DLJQDWmsxoJpy",
+          "cachedResultName": "WF-06 Construcción del pedido",
+          "cachedResultUrl": "/workflow/BU8DLJQDWmsxoJpy"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "ca4027a5-2b49-454f-912d-cf4318523422",
+      "name": "Ir a WF-06 (pedido)",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2064,
+        960
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx=$('Entrada').first().json; return [{json:{...ctx,motivo:'persona'}}];"
+      },
+      "id": "e557848b-19d8-4331-ba60-a5de8ecdf597",
+      "name": "Contexto: motivo persona",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1728,
+        1024
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "z5FzJrFVTFZM8JIL",
+          "cachedResultName": "WF-07 Atención humana",
+          "cachedResultUrl": "/workflow/z5FzJrFVTFZM8JIL"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}",
+            "motivo": "={{ $json.motivo }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "motivo",
+              "displayName": "motivo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "2b947019-33b4-4a8a-846e-fc30ee3ba39b",
+      "name": "Ir a WF-07 (atención humana)",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2096,
+        1024
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx=$('Entrada').first().json;\nreturn [{json:{...ctx,wa:{tipo:'botones',texto:'Solo puedo ayudarte con los productos y pedidos del comercio.',botones:[{id:'MENU',titulo:'Ver menú'}]}}}];"
+      },
+      "id": "dd55be8d-2885-4ac3-8976-04aac6aedada",
+      "name": "Armar: Tema ajeno",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1616,
+        1344
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "u1U4Iam9WNRMZuo5",
+          "cachedResultName": "SUB-01 Enviar Telegram",
+          "cachedResultUrl": "/workflow/u1U4Iam9WNRMZuo5"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}",
+            "wa": "={{ $json.wa }}",
+            "autor": "bot",
+            "guardar_contenido": true
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "wa",
+              "displayName": "wa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "autor",
+              "displayName": "autor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "guardar_contenido",
+              "displayName": "guardar_contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "a9e95907-435a-4cd8-97a6-212f82a65bac",
+      "name": "Enviar: Tema ajeno",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1840,
+        1344
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/rpc/incrementar_intentos",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({p_comercio_id:$('Entrada').first().json.comercio.id,p_wa_id:$('Entrada').first().json.mensaje.wa_id}) }}",
+        "options": {}
+      },
+      "id": "390e2ade-870a-4c59-a663-ed9371240498",
+      "name": "Incrementar intentos fallidos",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1616,
+        1632
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "GHBSL4NZxzJsUKti",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "df1",
+              "leftValue": "={{ Number($json.intentos)>=2 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "e1e93f97-7c69-45da-b694-2456b8d0a1ff",
+      "name": "¿Dos fallos seguidos?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1840,
+        1632
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx=$('Entrada').first().json;\nreturn [{json:{...ctx,wa:{tipo:'botones',texto:'No logro entenderte. ¿Qué prefieres?',botones:[{id:'MENU',titulo:'Menú principal'},{id:'OP_PERSONA',titulo:'Hablar con persona'}]}}}];"
+      },
+      "id": "ab7eca61-36b9-4f5f-a43c-c0997711a3ba",
+      "name": "Armar: Ofrecer menú o persona",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2064,
+        1536
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "u1U4Iam9WNRMZuo5",
+          "cachedResultName": "SUB-01 Enviar Telegram",
+          "cachedResultUrl": "/workflow/u1U4Iam9WNRMZuo5"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}",
+            "wa": "={{ $json.wa }}",
+            "autor": "bot",
+            "guardar_contenido": true
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "wa",
+              "displayName": "wa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "autor",
+              "displayName": "autor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "guardar_contenido",
+              "displayName": "guardar_contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "9c20d203-3d8e-4299-b084-eded7582c2cc",
+      "name": "Enviar: Ofrecer menú o persona",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2288,
+        1536
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx=$('Entrada').first().json;\nreturn [{json:{...ctx,wa:{tipo:'texto',texto:'No te entendí. ¿Puedes escribirlo de otra forma?'}}}];"
+      },
+      "id": "d7ba29a0-0a6d-4159-bad4-3b067f39c29b",
+      "name": "Armar: Pedir aclaración",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2064,
+        1728
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "u1U4Iam9WNRMZuo5",
+          "cachedResultName": "SUB-01 Enviar Telegram",
+          "cachedResultUrl": "/workflow/u1U4Iam9WNRMZuo5"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}",
+            "wa": "={{ $json.wa }}",
+            "autor": "bot",
+            "guardar_contenido": true
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "wa",
+              "displayName": "wa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "autor",
+              "displayName": "autor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "guardar_contenido",
+              "displayName": "guardar_contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "5beb32a6-7d29-4e80-b37d-038aac84e1c7",
+      "name": "Enviar: Pedir aclaración",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2288,
+        1728
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Entrada": {
+      "main": [
+        [
+          {
+            "node": "Resolver opción",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolver opción": {
+      "main": [
+        [
+          {
+            "node": "¿Texto libre?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Texto libre?": {
+      "main": [
+        [
+          {
+            "node": "Preparar IA (intención)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ruta de consulta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar IA (intención)": {
+      "main": [
+        [
+          {
+            "node": "Interpretar con WF-05 (intención)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Interpretar con WF-05 (intención)": {
+      "main": [
+        [
+          {
+            "node": "Mapear intención",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mapear intención": {
+      "main": [
+        [
+          {
+            "node": "Ruta de consulta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ruta de consulta": {
+      "main": [
+        [
+          {
+            "node": "Reiniciar estado a MENÚ",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Leer catálogo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Leer últimos pedidos del cliente",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Marcar estado FAQ",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Leer guía vigente",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Iniciar pedido en construcción",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Contexto: motivo persona",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Armar: Tema ajeno",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Incrementar intentos fallidos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reiniciar estado a MENÚ": {
+      "main": [
+        [
+          {
+            "node": "Armar: Menú",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar: Menú": {
+      "main": [
+        [
+          {
+            "node": "Enviar: Menú",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer catálogo": {
+      "main": [
+        [
+          {
+            "node": "Formatear catálogo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatear catálogo": {
+      "main": [
+        [
+          {
+            "node": "Armar: Catálogo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar: Catálogo": {
+      "main": [
+        [
+          {
+            "node": "Enviar: Catálogo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer últimos pedidos del cliente": {
+      "main": [
+        [
+          {
+            "node": "Formatear estado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatear estado": {
+      "main": [
+        [
+          {
+            "node": "Armar: Estado del pedido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar: Estado del pedido": {
+      "main": [
+        [
+          {
+            "node": "Enviar: Estado del pedido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marcar estado FAQ": {
+      "main": [
+        [
+          {
+            "node": "Armar: Pedir pregunta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar: Pedir pregunta": {
+      "main": [
+        [
+          {
+            "node": "Enviar: Pedir pregunta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer guía vigente": {
+      "main": [
+        [
+          {
+            "node": "Preparar IA (guía)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar IA (guía)": {
+      "main": [
+        [
+          {
+            "node": "Responder con WF-05 (guía)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Responder con WF-05 (guía)": {
+      "main": [
+        [
+          {
+            "node": "¿Respuesta está en la guía?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Respuesta está en la guía?": {
+      "main": [
+        [
+          {
+            "node": "Armar: Respuesta de la guía",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Armar: No está en la guía",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar: Respuesta de la guía": {
+      "main": [
+        [
+          {
+            "node": "Enviar: Respuesta de la guía",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar: No está en la guía": {
+      "main": [
+        [
+          {
+            "node": "Enviar: No está en la guía",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Iniciar pedido en construcción": {
+      "main": [
+        [
+          {
+            "node": "Contexto: pedido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contexto: pedido": {
+      "main": [
+        [
+          {
+            "node": "Ir a WF-06 (pedido)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contexto: motivo persona": {
+      "main": [
+        [
+          {
+            "node": "Ir a WF-07 (atención humana)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar: Tema ajeno": {
+      "main": [
+        [
+          {
+            "node": "Enviar: Tema ajeno",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Incrementar intentos fallidos": {
+      "main": [
+        [
+          {
+            "node": "¿Dos fallos seguidos?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Dos fallos seguidos?": {
+      "main": [
+        [
+          {
+            "node": "Armar: Ofrecer menú o persona",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Armar: Pedir aclaración",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar: Ofrecer menú o persona": {
+      "main": [
+        [
+          {
+            "node": "Enviar: Ofrecer menú o persona",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar: Pedir aclaración": {
+      "main": [
+        [
+          {
+            "node": "Enviar: Pedir aclaración",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "c342ab4c-0f75-4164-81e9-61a35a4e1d95",
+  "meta": {
+    "instanceId": "4513e4389da9632a75fc05a757b2c03560d5b2931684deab91f507e8053ea587"
+  },
+  "nodeGroups": [
+    {
+      "id": "4a69d45b-4e56-4d4f-9377-92340be3e1b9",
+      "name": "Mostrar menú",
+      "nodeIds": [
+        "c23e3f11-2077-45b9-8020-91eb3d3b1420",
+        "8f496a5f-a6e5-460e-b461-0a90197340dd",
+        "194dbffc-fede-4277-98c8-a68eced8c598"
+      ],
+      "description": "Reinicia la conversación y envía al cliente el menú de cinco opciones"
+    },
+    {
+      "id": "e6715a6b-05d3-4eb5-a774-57b36a138d3a",
+      "name": "Enviar catálogo",
+      "nodeIds": [
+        "aa8fb126-62c3-41af-aae4-a5a0302ddb61",
+        "58868eed-022e-4ae5-ae64-706a88adc166",
+        "323daec5-d7b9-403a-8ab7-4f8a2948f5d4",
+        "626d9b5c-8052-4503-b980-220ef3dd13ec"
+      ],
+      "description": "Lee los productos del comercio y se los muestra por categoría con su precio"
+    },
+    {
+      "id": "444d10ed-ef45-465a-a6ac-aeb6ba459fe5",
+      "name": "Consultar estado",
+      "nodeIds": [
+        "ca021213-7f14-4c24-acec-d968ac93ee4f",
+        "7ba11e51-9a0d-4aa9-ac01-f7a78bc3b025",
+        "f31f7338-e11c-40a2-8450-9caabb31c17a",
+        "bef0ec4f-72e7-483c-879b-2c0328a78e79"
+      ],
+      "description": "Busca los últimos tres pedidos del cliente y le informa en qué estado están"
+    },
+    {
+      "id": "0f3be4ba-22ce-423d-adb7-bcb03225c7cf",
+      "name": "Pedir pregunta",
+      "nodeIds": [
+        "f53f9b5e-bb11-45a7-a7df-17703396f631",
+        "c281c5f1-1ee8-49f3-8e9c-65dae611102f",
+        "1a8db4d4-39ee-4582-b966-e74bf6bb1f2a"
+      ],
+      "description": "Deja la conversación en preguntas frecuentes y pide al cliente que escriba su duda"
+    },
+    {
+      "id": "2bff2e7b-0dab-455e-be44-09b6ffec7864",
+      "name": "Responder con la guía",
+      "nodeIds": [
+        "ce5f5e03-3aaf-4739-bfcb-40b821c93b76",
+        "6e01f4aa-3291-4868-9683-4299aa6d851e",
+        "0ec671d9-1180-4a2c-8d23-5256812d3a8f",
+        "b491f6c2-d649-48d2-94ff-80601d1b9763",
+        "d5bbf3db-eb41-46d9-935c-ec74ce9e2566",
+        "6b3a84d8-99f9-4150-8e18-35f24884f593",
+        "e1f89f3a-ef9c-4331-a3c4-e4fac06fe215",
+        "08ed5b2c-61bd-4706-b10b-46fe39de240b"
+      ],
+      "description": "Responde la duda solo con la guía del comercio; si no está, ofrece menú o una persona"
+    },
+    {
+      "id": "e22032ca-9d5c-44f0-bb61-01a46106eb64",
+      "name": "Iniciar pedido",
+      "nodeIds": [
+        "e64de5c2-5bb6-4ed0-b9fd-6fe8c2a6526d",
+        "7be0f0f3-301d-495a-86bd-76bc8e187b23",
+        "ca4027a5-2b49-454f-912d-cf4318523422"
+      ],
+      "description": "Abre un pedido en construcción y pasa la conversación al flujo de construcción del pedido"
+    },
+    {
+      "id": "c2cb064c-bbea-4805-aac3-094667780f9e",
+      "name": "Atender tema ajeno",
+      "nodeIds": [
+        "dd55be8d-2885-4ac3-8976-04aac6aedada",
+        "a9e95907-435a-4cd8-97a6-212f82a65bac"
+      ],
+      "description": "Responde con un mensaje fijo cuando el cliente pregunta algo ajeno al comercio"
+    },
+    {
+      "id": "cc88be78-0d17-443b-8375-08de974fc0c7",
+      "name": "Aclarar mensaje",
+      "nodeIds": [
+        "390e2ade-870a-4c59-a663-ed9371240498",
+        "e1e93f97-7c69-45da-b694-2456b8d0a1ff",
+        "ab7eca61-36b9-4f5f-a43c-c0997711a3ba",
+        "9c20d203-3d8e-4299-b084-eded7582c2cc",
+        "d7ba29a0-0a6d-4159-bad4-3b067f39c29b",
+        "5beb32a6-7d29-4e80-b37d-038aac84e1c7"
+      ],
+      "description": "Cuenta los mensajes no entendidos y pide aclarar; al segundo fallo ofrece menú o persona"
+    }
+  ],
+  "id": "1mreiLAc2yuZttOP",
+  "tags": []
+}

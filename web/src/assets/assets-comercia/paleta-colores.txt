@@ -1,0 +1,70 @@
+COMERCIA - IDENTIDAD VISUAL: PALETA, ESTADOS Y TIPOGRAFIA
+==========================================================
+
+1. PALETA OFICIAL (6 colores entregados por el equipo)
+------------------------------------------------------
+#1A3A4A   Navy
+#2D8C7A   Teal (verde azulado)
+#F4A623   Naranja (acento)
+#F2E8D9   Arena (crema)
+#F9F6F1   Papel (crema claro)
+#E8F4F0   Menta (verde muy claro)
+
+2. ROLES VISUALES  (asignacion PROPUESTA; confirmar antes de fijarla)
+------------------------------------------------------
+Brand / Primario        #2D8C7A   Botones, acentos, CTAs
+Navy / Fondo oscuro     #1A3A4A   Header, titulos, sidebar
+Superficie / Fondo      #F2E8D9   Fondo general de la app
+Cards / Papel           #F9F6F1   Tarjetas, modales, paneles
+Tinte de apoyo          #E8F4F0   Hover, filas seleccionadas, fondos de ilustracion
+Acento                  #F4A623   Resaltes puntuales, "IA" del logo, check
+
+3. ESTADOS DE PEDIDO  (PROPUESTA: la paleta oficial no define estos colores)
+------------------------------------------------------
+Estado       Color base   Fondo de badge   Texto de badge   Contraste texto/fondo
+Pendiente    #F4A623      #FDF0D8          #6B4300          7.67:1
+En proceso   #1A3A4A      #DDE7EC          #1A3A4A          9.56:1
+Completado   #2D8C7A      #E8F4F0          #1F6557          6.09:1
+Cancelado    #C0392B      #F8E1DE          #8A2A1F          6.92:1
+
+Notas:
+- Pendiente, En proceso y Completado salen de la paleta oficial. Los estados
+  del documento de Incepcion son: pendiente, en proceso y completado.
+- "Cancelado" NO existe en el Taller de Incepcion y #C0392B/#8A2A1F no son
+  colores de marca: es una adicion para tener un estado de error/rechazo.
+  Si no se usa ese estado, se elimina.
+- Para los badges se usa el color base solo en el punto/borde y el texto
+  oscuro de la columna "Texto de badge", no el color base como texto.
+
+4. CONTRASTE (WCAG 2.1, calculado)
+------------------------------------------------------
+Navy sobre Papel #F9F6F1 .......... 11.14:1  AA/AAA
+Navy sobre Arena #F2E8D9 ..........  9.91:1  AA/AAA
+Navy sobre Menta #E8F4F0 .......... 10.66:1  AA/AAA
+Menta sobre Navy ................... 10.66:1  AA/AAA  (logo "light", fondos oscuros)
+Naranja sobre Navy ................. 5.91:1  AA      ("IA" del logo en fondos oscuros)
+Navy sobre Naranja ................. 5.91:1  AA      (texto sobre boton naranja)
+Teal sobre Papel .................... 3.79:1  solo texto grande (>=24 px, o >=19 px en negrita)
+Blanco sobre Teal ................... 4.08:1  solo texto grande/negrita; para texto
+                                                pequeno de boton usar Navy sobre Naranja
+                                                o un teal mas oscuro
+Naranja sobre Papel/Arena ........... 1.89:1  NO usar para texto ni iconos informativos
+                                                sobre fondos claros (el logo esta exento)
+Menta sobre Teal .................... 3.62:1  solo texto grande
+
+Por eso el logo "dark" usa el tagline en Navy (no en Teal) y el logo "light"
+usa Menta en vez de Teal.
+
+5. TIPOGRAFIA
+------------------------------------------------------
+Principal (titulos, logotipo):  Syne      pesos 400, 500, 600, 700
+Secundaria (UI, cuerpo):        DM Sans   pesos 400, 500, 600, 700
+Archivos: carpeta fonts/ (.woff2, subconjunto latin, licencia SIL OFL
+incluida) y fonts/fonts.css con las reglas @font-face listas.
+
+Formato numerico: el subconjunto latin de DM Sans entregado NO incluye cifras
+tabulares (feature tnum). Si las tablas de pedidos necesitan alinear montos,
+hay que definirlo antes de implementar el panel (opciones: fuente numerica
+aparte o aceptar el ancho proporcional de DM Sans).
+La combinacion Inter + Manrope + JetBrains Mono del checklist original NO se
+usa: se reemplaza por Syne + DM Sans, segun la marca.

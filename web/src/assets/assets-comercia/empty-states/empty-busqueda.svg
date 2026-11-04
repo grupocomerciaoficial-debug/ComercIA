@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300" role="img" aria-labelledby="t">
+<title id="t">Sin resultados</title>
+<ellipse cx="200" cy="158" rx="150" ry="112" fill="#E8F4F0"/>
+<circle cx="62" cy="62" r="9" fill="#F4A623"/>
+<circle cx="346" cy="246" r="7" fill="#2D8C7A"/>
+<circle cx="338" cy="70" r="4" fill="#2D8C7A"/>
+<circle cx="72" cy="232" r="4" fill="#F4A623"/>
+<ellipse cx="200" cy="262" rx="92" ry="8" fill="#1A3A4A" opacity="0.08"/>
+<g fill="none" stroke="#1A3A4A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+
+<path d="M128 58 H224 L262 96 V212 a8 8 0 0 1 -8 8 H136 a8 8 0 0 1 -8 -8 Z" fill="#F9F6F1"/>
+<path d="M224 58 V90 a6 6 0 0 0 6 6 H262" fill="none"/>
+<path d="M152 130 H208 M152 154 H190 M152 178 H176" stroke="#2D8C7A" stroke-width="5" opacity="0.55"/>
+<circle cx="258" cy="178" r="36" fill="#E8F4F0"/>
+<path d="M284 204 L322 242" stroke-width="10"/>
+<path d="M243 178 H273" stroke="#F4A623" stroke-width="6"/>
+<g stroke="none"><circle cx="318" cy="92" r="22" fill="#F4A623"/></g>
+<path d="M330 88 a13 13 0 1 0 -4 12" stroke="#1A3A4A" stroke-width="4.5" fill="none"/>
+<path d="M332 80 V90 H322" stroke="#1A3A4A" stroke-width="4.5" fill="none"/>
+
+</g>
+</svg>

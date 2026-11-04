@@ -10,7 +10,7 @@ Panel administrativo para comercios conectado a Supabase local. La aplicación u
 
 ## Instalación
 
-El PR inicial organiza carpetas y documentación. Los comandos de esta sección estarán disponibles después de integrar el manifiesto y el código de la web.
+La web incluye acceso por Supabase Auth, configuración del comercio, catálogo, pedidos, bandeja de atención, guía, política de privacidad y administración de comercios. El registro público permanece deshabilitado para el MVP.
 
 Desde esta carpeta (`web/`):
 
@@ -32,7 +32,7 @@ npx supabase status
 
 Toma `API_URL` y la clave pública `ANON_KEY` o `PUBLISHABLE_KEY` que muestre el CLI y úsalas como `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`. La clave `service_role` es privada y no debe copiarse al panel ni a variables `VITE_*`.
 
-Las migraciones de `supabase/migrations/` aplican el esquema base y las extensiones del panel. `supabase/seed.sql` carga datos ficticios para desarrollo local, incluidas las cuentas indicadas en ese archivo. Para reconstruir una base local descartable:
+Las migraciones de `supabase/migrations/` aplican el esquema base y las extensiones del panel. `supabase/seed.sql` carga la información comercial de Berakah junto con registros sintéticos de prueba y cuentas locales. Para reconstruir una base local descartable:
 
 ```powershell
 npx supabase db reset

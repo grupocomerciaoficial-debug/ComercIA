@@ -63,7 +63,7 @@ function AuthFrame({ children }) {
         </div>
         {children}
         <p className="auth-legal">
-          Al continuar, aceptas nuestra{' '}
+          Consulta nuestros <Link to="/terminos">Términos y Condiciones</Link> y la{' '}
           <Link to="/privacidad">Política de tratamiento de datos</Link>.
         </p>
       </section>
@@ -225,24 +225,90 @@ export function RecoveryPage() {
 export function ResetPasswordPage() {
   const toast = useToast();
   const navigate = useNavigate();
-  const { user, updatePassword } = useAuth();
+  const { user, updatePassword, ready } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  const hash = typeof window !== 'undefined' ? window.location.hash || '' : '';
+  const search = typeof window !== 'undefined' ? window.location.search || '' : '';
+  const hasAuthError =
+    hash.includes('error=') ||
+    search.includes('error=') ||
+    hash.includes('error_code=') ||
+    search.includes('error_code=');
+
+  if (!ready) {
+    return (
+      <AuthFrame>
+        <div className="auth-card">
+          <div className="eyebrow">VERIFICANDO</div>
+          <h2>Validando tu acceso…</h2>
+          <p className="auth-subtitle">Espera un momento mientras verificamos tu enlace.</p>
+        </div>
+      </AuthFrame>
+    );
+  }
+
+  if (hasAuthError || !user) {
+    return (
+      <AuthFrame>
+        <div className="auth-card">
+          <Link to="/ingresar" className="back-link">
+            <ArrowLeft size={15} />
+            Volver al inicio de sesión
+          </Link>
+          <div className="eyebrow">RECUPERACIÓN DE CONTRASEÑA</div>
+          <h2>{hasAuthError ? 'Enlace expirado o no válido' : 'Sesión requerida'}</h2>
+          <p className="auth-subtitle">
+            {hasAuthError
+              ? 'El enlace de recuperación ha expirado o ya fue utilizado. Por favor solicita uno nuevo.'
+              : 'Para actualizar tu contraseña necesitas abrir el enlace recibido por correo o tener una sesión activa.'}
+          </p>
+          <div
+            style={{
+              marginTop: '1.25rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.75rem',
+            }}
+          >
+            <Link
+              to="/recuperar"
+              className="button button-primary"
+              style={{ justifyContent: 'center' }}
+            >
+              Solicitar nuevo enlace <ArrowRight size={16} />
+            </Link>
+            <Link
+              to="/ingresar"
+              className="button button-soft"
+              style={{ justifyContent: 'center' }}
+            >
+              Iniciar sesión
+            </Link>
+          </div>
+        </div>
+      </AuthFrame>
+    );
+  }
 
   async function submit(event) {
     event.preventDefault();
     const password = event.currentTarget.password.value;
+    const confirm = event.currentTarget.confirm.value;
     if (password.length < 8) {
       toast('La contraseña debe tener al menos 8 caracteres.', 'error');
       return;
     }
-    if (password !== event.currentTarget.confirm.value) {
+    if (password !== confirm) {
       toast('Las contraseñas no coinciden.', 'error');
       return;
     }
     setLoading(true);
     try {
       await updatePassword(password);
-      toast('Contraseña actualizada.');
+      toast('Contraseña actualizada correctamente.');
       navigate(user?.role === 'admin' ? '/admin' : '/inicio', { replace: true });
     } catch (error) {
       toast(error.message, 'error');
@@ -251,30 +317,66 @@ export function ResetPasswordPage() {
     }
   }
 
+  const backDestination = user ? (user.role === 'admin' ? '/admin' : '/inicio') : '/ingresar';
+  const backLabel = user ? 'Volver al panel' : 'Volver al inicio de sesión';
+
   return (
     <AuthFrame>
       <div className="auth-card">
-        <Link to="/ingresar" className="back-link">
+        <Link to={backDestination} className="back-link">
           <ArrowLeft size={15} />
-          Volver al inicio de sesión
+          {backLabel}
         </Link>
         <div className="eyebrow">ACTUALIZAR CONTRASEÑA</div>
         <h2>Elige una nueva clave.</h2>
+        <p className="auth-subtitle">
+          Actualizando la contraseña para <strong>{user.email}</strong>.
+        </p>
         <form onSubmit={submit}>
-          <FormField label="Nueva contraseña">
-            <input
-              name="password"
-              type="password"
-              required
-              minLength={8}
-              autoComplete="new-password"
-            />
+          <FormField label="Nueva contraseña" id="newPassword" hint="Mínimo 8 caracteres">
+            <span className="input-with-icon">
+              <LockKeyhole size={16} />
+              <input
+                id="newPassword"
+                name="password"
+                type={showPassword ? 'text' : 'password'}
+                required
+                minLength={8}
+                autoComplete="new-password"
+                placeholder="Mínimo 8 caracteres"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((value) => !value)}
+                aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </span>
           </FormField>
-          <FormField label="Confirma tu contraseña">
-            <input name="confirm" type="password" required autoComplete="new-password" />
+          <FormField label="Confirma tu contraseña" id="confirmPassword">
+            <span className="input-with-icon">
+              <LockKeyhole size={16} />
+              <input
+                id="confirmPassword"
+                name="confirm"
+                type={showConfirm ? 'text' : 'password'}
+                required
+                minLength={8}
+                autoComplete="new-password"
+                placeholder="Repite tu nueva contraseña"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirm((value) => !value)}
+                aria-label={showConfirm ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+              >
+                {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </span>
           </FormField>
           <Button type="submit" variant="primary" className="auth-submit" loading={loading}>
-            Guardar contraseña
+            Guardar contraseña <ArrowRight size={16} />
           </Button>
         </form>
       </div>

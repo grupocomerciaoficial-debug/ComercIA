@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { useAuth } from '../providers.jsx';
 import { Header } from './Header.jsx';
@@ -7,13 +8,26 @@ import { PageLoader } from '../../shared/ui/Feedback.jsx';
 
 export function AppShell({ admin = false }) {
   const { user } = useAuth();
+  const [mobileOpen, setMobileOpen] = useState(false);
   const { data: alertCount = 0, isLoading } = usePendingAlerts({ enabled: !admin });
   if (isLoading && !admin) return <PageLoader label="Preparando tu espacio…" />;
   return (
     <div className={`workspace ${admin ? 'workspace-admin' : ''}`}>
-      <Sidebar admin={admin} user={user} count={admin ? 0 : alertCount} />
+      <Sidebar
+        admin={admin}
+        user={user}
+        count={admin ? 0 : alertCount}
+        mobileOpen={mobileOpen}
+        onMobileClose={() => setMobileOpen(false)}
+        onMobileOpen={() => setMobileOpen(true)}
+      />
       <div className="workspace-main">
-        <Header admin={admin} user={user} count={admin ? 0 : alertCount} />
+        <Header
+          admin={admin}
+          user={user}
+          count={admin ? 0 : alertCount}
+          onOpenMobile={() => setMobileOpen(true)}
+        />
         <main className="page-container" key={admin ? 'admin' : 'owner'}>
           <Outlet />
         </main>

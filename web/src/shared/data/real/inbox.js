@@ -174,7 +174,12 @@ export async function sendOwnerMessage(conversationId, content, session) {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${session.token}`,
       },
-      body: JSON.stringify({ id_conversacion: conversationId, contenido: content }),
+      body: JSON.stringify({
+        id_conversacion: conversationId,
+        conversacion_id: conversationId,
+        contenido: content,
+        texto: content,
+      }),
     });
   } catch {
     throw new Error('No pudimos conectar con el servicio de mensajería. Inténtalo de nuevo.');

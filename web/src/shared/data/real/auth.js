@@ -91,3 +91,38 @@ export async function updatePassword(password) {
   const { error } = await getSupabase().auth.updateUser({ password });
   if (error) throw new Error('No pudimos guardar la nueva contraseña. Vuelve a intentarlo.');
 }
+
+export async function updateProfile({ name }) {
+  const supabase = getSupabase();
+  const trimmedName = name.trim();
+  const { data, error } = await supabase.auth.updateUser({
+    data: { nombre: trimmedName },
+  });
+  if (error) throw translateDatabaseError(error);
+
+  const authUserId = data?.user?.id;
+  if (authUserId) {
+    try {
+      await supabase
+        .from('usuarios')
+        .update({ nombre: trimmedName })
+        .eq('auth_user_id', authUserId);
+    } catch {
+      // Perfil opcional en la tabla de usuarios
+    }
+  }
+
+  const { data: sessionData } = await supabase.auth.getSession();
+  return hydrateSession(sessionData?.session);
+}
+
+export function onAuthStateChange(callback) {
+  try {
+    const supabase = getSupabase();
+    return supabase.auth.onAuthStateChange((event, session) => {
+      callback(event, session);
+    });
+  } catch {
+    return { data: { subscription: { unsubscribe: () => {} } } };
+  }
+}

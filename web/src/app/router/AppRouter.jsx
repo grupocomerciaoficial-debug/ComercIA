@@ -3,6 +3,7 @@ import { GuestOnly, RequireSession } from './Guards.jsx';
 import { AppShell } from '../layout/AppShell.jsx';
 import { LoginPage, RecoveryPage, ResetPasswordPage } from '../../features/auth/AuthPages.jsx';
 import { PrivacyPage } from '../../features/privacidad/PrivacyPage.jsx';
+import { TermsPage } from '../../features/terminos/TermsPage.jsx';
 import { DashboardPage } from '../../features/comercio/DashboardPage.jsx';
 import { BusinessPage } from '../../features/comercio/BusinessPage.jsx';
 import { CatalogPage } from '../../features/catalogo/CatalogPage.jsx';
@@ -18,9 +19,10 @@ export function AppRouter() {
       <Route element={<GuestOnly />}>
         <Route path="/ingresar" element={<LoginPage />} />
         <Route path="/recuperar" element={<RecoveryPage />} />
-        <Route path="/restablecer" element={<ResetPasswordPage />} />
       </Route>
+      <Route path="/restablecer" element={<ResetPasswordPage />} />
       <Route path="/privacidad" element={<PrivacyPage />} />
+      <Route path="/terminos" element={<TermsPage />} />
       <Route element={<RequireSession role="dueno" />}>
         <Route element={<AppShell />}>
           <Route index element={<Navigate to="/inicio" replace />} />

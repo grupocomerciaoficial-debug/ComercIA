@@ -179,7 +179,7 @@ button {
   }
 }
 
-/* Core atmosphere */
+/* Estilos base */
 .workspace {
   min-height: 100vh;
 }
@@ -463,7 +463,7 @@ button {
   margin: -1px;
 }
 
-/* Sidebar / shell */
+/* Barra lateral y navegación */
 .sidebar {
   position: fixed;
   inset: 0 auto 0 0;
@@ -746,6 +746,14 @@ button {
 }
 .sidebar.collapsed {
   width: 76px;
+  transition:
+    width 0.24s var(--ease),
+    box-shadow 0.24s var(--ease),
+    transform 0.3s var(--ease);
+}
+.sidebar.collapsed .sidebar-brand {
+  justify-content: center;
+  padding: 0;
 }
 .sidebar.collapsed .brand-copy,
 .sidebar.collapsed .merchant-copy,
@@ -773,6 +781,72 @@ button {
 }
 .sidebar.collapsed .user-card {
   justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 0 4px;
+}
+.sidebar.collapsed .collapse-btn {
+  margin: 0 auto;
+}
+
+/* Expansión suave y visualización de títulos al pasar el cursor sobre el drawer */
+@media (min-width: 961px) {
+  .sidebar.collapsed:hover {
+    width: 252px;
+    box-shadow: 6px 0 32px rgba(26, 58, 74, 0.16);
+    z-index: 40;
+  }
+  .sidebar.collapsed:hover .sidebar-brand {
+    justify-content: space-between;
+    padding: 0 9px;
+  }
+  .sidebar.collapsed:hover .brand-copy,
+  .sidebar.collapsed:hover .merchant-copy,
+  .sidebar.collapsed:hover .merchant-switch > svg,
+  .sidebar.collapsed:hover .side-label,
+  .sidebar.collapsed:hover .side-link span,
+  .sidebar.collapsed:hover .nav-count,
+  .sidebar.collapsed:hover .help-card,
+  .sidebar.collapsed:hover .user-copy {
+    display: initial;
+  }
+  .sidebar.collapsed:hover .merchant-copy b,
+  .sidebar.collapsed:hover .merchant-copy small,
+  .sidebar.collapsed:hover .user-copy b,
+  .sidebar.collapsed:hover .user-copy small {
+    display: block;
+  }
+  .sidebar.collapsed:hover .merchant-switch {
+    justify-content: flex-start;
+    padding: 10px 9px;
+  }
+  .sidebar.collapsed:hover .side-link {
+    justify-content: flex-start;
+    padding: 0 11px;
+  }
+  .sidebar.collapsed:hover .side-link.active:before {
+    left: -14px;
+  }
+  .sidebar.collapsed:hover .user-card {
+    justify-content: flex-start;
+    flex-direction: row;
+    gap: 9px;
+    padding: 11px 6px 5px;
+  }
+  .sidebar.collapsed:hover .collapse-btn {
+    margin: 0;
+  }
+  .sidebar.collapsed:hover .sidebar-logo-full {
+    display: inline-flex !important;
+  }
+  .sidebar.collapsed:hover .sidebar-logo-icon {
+    display: none !important;
+  }
+  .sidebar.collapsed:hover .sidebar-logo .comercia-logo-img {
+    height: 34px;
+    width: auto;
+    max-width: 165px;
+  }
 }
 .workspace:has(.sidebar.collapsed) .workspace-main {
   margin-left: 76px;
@@ -1185,7 +1259,7 @@ button {
   }
 }
 
-/* Brand mark: vector SVG logo integration with perfect scaling */
+/* Logotipo */
 .comercia-logo {
   display: inline-flex;
   align-items: center;
@@ -1261,7 +1335,7 @@ button {
   color: var(--orange);
 }
 
-/* Dashboard: deliberately editorial and warm, with a bespoke hero composition. */
+/* Panel principal */
 .dashboard-page > .page-title {
   margin-bottom: 19px;
 }
@@ -2089,7 +2163,7 @@ button {
   margin: 0 auto;
 }
 
-/* Status pills and tables */
+/* Tablas y estados */
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -2574,7 +2648,7 @@ table {
   gap: 7px;
 }
 
-/* Modal / detail */
+/* Ventanas modales */
 .modal-shade {
   position: fixed;
   z-index: 60;
@@ -2906,7 +2980,7 @@ table {
   color: #725720;
 }
 
-/* Catalog */
+/* Catálogo */
 .catalog-hero {
   min-height: 235px;
   position: relative;
@@ -3455,7 +3529,7 @@ table {
   margin: 0;
 }
 
-/* Business settings */
+/* Configuración del comercio */
 .business-connect-banner {
   display: flex;
   align-items: center;
@@ -3901,7 +3975,7 @@ table {
   color: #9aaa9f;
 }
 
-/* Guide */
+/* Guía del negocio */
 .guide-secure {
   display: flex;
   align-items: center;
@@ -4219,7 +4293,7 @@ table {
   color: #647d6d;
 }
 
-/* Privacy page */
+/* Política de privacidad */
 .policy-page {
   min-height: 100vh;
   background: #f4f7f5;
@@ -4338,6 +4412,51 @@ table {
   color: #9da9a4;
   margin: 20px 0;
 }
+.legal-document-card {
+  max-width: 1040px;
+}
+.legal-document-status {
+  padding: 24px;
+  margin-top: 20px;
+  border: 1px solid #e5ece8;
+  border-radius: 12px;
+  color: #748582;
+  font-size: 13px;
+  text-align: center;
+}
+.legal-document-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 18px 0 4px;
+  font-size: 12px;
+}
+.legal-document-nav a {
+  color: #2b806c;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.legal-document-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 22px 0 16px;
+}
+.legal-document-actions .button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+}
+.legal-document-frame {
+  width: 100%;
+  height: min(78vh, 1050px);
+  min-height: 520px;
+  border: 1px solid #e5ece8;
+  border-radius: 10px;
+  background: #f8faf9;
+}
 .not-found {
   min-height: 100vh;
   display: grid;
@@ -4366,7 +4485,7 @@ table {
   margin: 0 0 17px;
 }
 
-/* Authentication: branded entry, not a generic AI login. */
+/* Autenticación */
 .auth-page {
   min-height: 100vh;
   display: grid;
@@ -4658,7 +4777,7 @@ table {
   color: #539277;
 }
 
-/* Inbox */
+/* Bandeja de atención */
 .inbox-ribbon {
   height: 75px;
   display: flex;
@@ -5293,7 +5412,7 @@ table {
   display: block;
 }
 
-/* Admin */
+/* Panel de administración */
 .admin-shield {
   display: flex;
   align-items: center;
@@ -5463,7 +5582,7 @@ table {
   gap: 5px;
 }
 
-/* Small interaction polish */
+/* Animaciones e interacciones */
 .page-title-actions .button {
   min-height: 35px;
   font-size: 9px;

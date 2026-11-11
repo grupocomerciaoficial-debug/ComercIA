@@ -7,12 +7,14 @@ import {
   useRef,
   useState,
 } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { authRepo } from '../shared/data/repositories.js';
 
 const AuthContext = createContext(null);
 const ToastContext = createContext(() => {});
 
 export function AppProviders({ children, queryClient }) {
+  const navigate = useNavigate();
   const [session, setSession] = useState(null);
   const [ready, setReady] = useState(false);
   const [toastItems, setToastItems] = useState([]);
@@ -37,7 +39,35 @@ export function AppProviders({ children, queryClient }) {
   useEffect(() => {
     activity.current = Date.now();
     Promise.resolve().then(refresh);
-  }, [refresh]);
+
+    const checkHashRecovery = () => {
+      const hash = window.location.hash || '';
+      const search = window.location.search || '';
+      if (
+        (hash.includes('type=recovery') || search.includes('type=recovery')) &&
+        window.location.pathname !== '/restablecer'
+      ) {
+        navigate('/restablecer', { replace: true });
+      }
+    };
+    checkHashRecovery();
+
+    const { data: { subscription } = {} } =
+      authRepo.onAuthStateChange?.(async (event) => {
+        if (event === 'PASSWORD_RECOVERY') {
+          await refresh();
+          navigate('/restablecer', { replace: true });
+        } else if (event === 'SIGNED_OUT') {
+          setSession(null);
+        } else if (event === 'USER_UPDATED' || event === 'SIGNED_IN') {
+          await refresh();
+        }
+      }) || {};
+
+    return () => {
+      subscription?.unsubscribe?.();
+    };
+  }, [navigate, refresh]);
 
   const signIn = useCallback(
     async (credentials) => {
@@ -53,6 +83,12 @@ export function AppProviders({ children, queryClient }) {
   const updatePassword = useCallback(async (password) => {
     await authRepo.updatePassword(password);
     const updatedSession = await authRepo.getSession();
+    setSession(updatedSession);
+    return updatedSession;
+  }, []);
+
+  const updateProfile = useCallback(async (profileData) => {
+    const updatedSession = await authRepo.updateProfile(profileData);
     setSession(updatedSession);
     return updatedSession;
   }, []);
@@ -94,10 +130,11 @@ export function AppProviders({ children, queryClient }) {
       ready,
       signIn,
       updatePassword,
+      updateProfile,
       signOut,
       refresh,
     }),
-    [session, ready, signIn, updatePassword, signOut, refresh],
+    [session, ready, signIn, updatePassword, updateProfile, signOut, refresh],
   );
 
   return (

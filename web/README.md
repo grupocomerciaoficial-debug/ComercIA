@@ -10,7 +10,16 @@ Panel administrativo para comercios conectado a Supabase local. La aplicación u
 
 ## Instalación
 
-La web incluye acceso por Supabase Auth, configuración del comercio, catálogo, pedidos, bandeja de atención, guía, política de privacidad y administración de comercios. El registro público permanece deshabilitado para el MVP.
+La web incluye acceso por Supabase Auth, configuración del comercio, catálogo, pedidos, bandeja de atención, guía, páginas públicas de Términos y Política de Tratamiento de Datos, y administración de comercios. El registro público permanece deshabilitado para el MVP.
+
+## Publicar los documentos legales
+
+Las rutas públicas son `/terminos` y `/privacidad`; no requieren iniciar sesión. Las páginas muestran un estado de documento pendiente hasta que exista el PDF correspondiente. Cuando los DOCX estén completos y aprobados, expórtalos a PDF y copia los archivos a `web/public/legal/` con estos nombres exactos:
+
+- `terminos.pdf` para Términos y Condiciones.
+- `politica-tratamiento-datos.pdf` para la Política de Tratamiento de Datos Personales.
+
+Al desplegar en Vercel, los documentos aparecerán en sus rutas públicas y podrán abrirse o descargarse. Las URL estables son `/legal/terminos.pdf` y `/legal/politica-tratamiento-datos.pdf`; configura WF-02 para enlazar `/privacidad` y registrar el identificador de versión de la política por separado. No agregues los PDF hasta retirar campos pendientes y aprobar el contenido.
 
 Desde esta carpeta (`web/`):
 
@@ -45,7 +54,7 @@ Ese comando borra y vuelve a crear la base local. No lo ejecutes si necesitas co
 - `VITE_SUPABASE_URL`: URL local del API que muestra `supabase status`.
 - `VITE_SUPABASE_ANON_KEY`: clave pública local `anon` o `publishable`.
 - `VITE_N8N_PANEL_ENVIAR_URL`: endpoint HTTPS de n8n para enviar respuestas desde la bandeja. El panel envía `POST` JSON `{ "id_conversacion": number, "contenido": string }` y el JWT de Supabase en `Authorization: Bearer`. El equipo de n8n debe validar esa sesión y aplicar autorización por comercio. Si la variable queda vacía, el envío aparece deshabilitado.
-- `VITE_PRIVACY_POLICY_VERSION`, `VITE_PRIVACY_POLICY_DATE`, `VITE_PRIVACY_CONTROLLER_NAME`, `VITE_PRIVACY_CONTACT_EMAIL`, `VITE_PRIVACY_CONTACT_ADDRESS`: datos que completan la política pública. No publiques el panel mientras el responsable y los canales de contacto sigan pendientes.
+- Los documentos legales se publican como PDF estáticos en `public/legal/`; no necesitan variables de entorno. Completa y aprueba el contenido antes de agregar los archivos.
 
 El panel no usa `service_role`. No incluyas tokens de bot, contraseñas, claves privadas ni secretos de n8n en esta carpeta.
 

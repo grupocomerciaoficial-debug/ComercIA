@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import {
   Bell,
@@ -36,6 +36,7 @@ export function Sidebar({
 }) {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const links = admin ? adminLinks : ownerLinks;
 
   function closeMobile() {
@@ -43,6 +44,12 @@ export function Sidebar({
   }
 
   function go(path) {
+    // Si ya estamos en la misma ruta, hace scroll suave al inicio de la página
+    if (location.pathname === path) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      closeMobile();
+      return;
+    }
     const action = () => navigate(path);
     if (document.startViewTransition) document.startViewTransition(action);
     else action();

@@ -163,8 +163,13 @@ export async function sendOwnerMessage(conversationId, content, session) {
     throw new Error(
       'El envío desde el panel aún no está configurado. Contacta al equipo ComercIA.',
     );
-  if (!session?.token)
-    throw new Error('Tu sesión terminó. Vuelve a iniciar sesión para responder.');
+
+  // Asegura obtener el token fresco (o auto-refrescado si el anterior expiró)
+  const supabase = getSupabase();
+  const { data: sessionData } = await supabase.auth.getSession();
+  const token = sessionData?.session?.access_token || session?.token;
+
+  if (!token) throw new Error('Tu sesión terminó. Vuelve a iniciar sesión para responder.');
 
   let response;
   try {
@@ -172,7 +177,7 @@ export async function sendOwnerMessage(conversationId, content, session) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${session.token}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
         id_conversacion: conversationId,

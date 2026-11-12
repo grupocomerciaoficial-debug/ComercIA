@@ -75,7 +75,7 @@ export function useAlerts() {
     queryKey: ['alerts', commerceId],
     queryFn: () => inboxRepo.listAlerts({ commerceId }),
     enabled: Boolean(user && user.role === 'dueno' && commerceId),
-    refetchInterval: ORDER_POLL_MS,
+    refetchInterval: 4000,
     refetchIntervalInBackground: false,
   });
 }

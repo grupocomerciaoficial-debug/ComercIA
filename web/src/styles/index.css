@@ -789,63 +789,78 @@ button {
   margin: 0 auto;
 }
 
-/* Expansión suave y visualización de títulos al pasar el cursor sobre el drawer */
-@media (min-width: 961px) {
+/* Expansión suave al pasar el cursor sobre el drawer colapsado — aplicado con !important
+   para ganar a los bloques responsive que también ocultan el texto */
+.sidebar.collapsed:hover {
+  width: 252px !important;
+  box-shadow: 6px 0 32px rgba(26, 58, 74, 0.16) !important;
+  z-index: 40 !important;
+  overflow: visible;
+}
+.sidebar.collapsed:hover .sidebar-brand {
+  justify-content: space-between !important;
+  padding: 0 9px !important;
+}
+.sidebar.collapsed:hover .brand-copy,
+.sidebar.collapsed:hover .merchant-copy,
+.sidebar.collapsed:hover .merchant-switch > svg,
+.sidebar.collapsed:hover .side-label,
+.sidebar.collapsed:hover .side-link span,
+.sidebar.collapsed:hover .nav-count,
+.sidebar.collapsed:hover .help-card,
+.sidebar.collapsed:hover .user-copy {
+  display: revert !important;
+}
+.sidebar.collapsed:hover .merchant-copy b,
+.sidebar.collapsed:hover .merchant-copy small,
+.sidebar.collapsed:hover .user-copy b,
+.sidebar.collapsed:hover .user-copy small {
+  display: block !important;
+}
+.sidebar.collapsed:hover .nav-count {
+  display: inline-block !important;
+}
+.sidebar.collapsed:hover .side-link span {
+  display: inline !important;
+}
+.sidebar.collapsed:hover .merchant-switch {
+  justify-content: flex-start !important;
+  padding: 10px 9px !important;
+}
+.sidebar.collapsed:hover .side-link {
+  justify-content: flex-start !important;
+  padding: 0 11px !important;
+}
+.sidebar.collapsed:hover .side-link.active:before {
+  left: -14px;
+}
+.sidebar.collapsed:hover .user-card {
+  justify-content: flex-start !important;
+  flex-direction: row !important;
+  gap: 9px !important;
+  padding: 11px 6px 5px !important;
+}
+.sidebar.collapsed:hover .collapse-btn {
+  margin: 0 !important;
+  display: flex !important;
+}
+.sidebar.collapsed:hover .sidebar-logo-full {
+  display: inline-flex !important;
+}
+.sidebar.collapsed:hover .sidebar-logo-icon {
+  display: none !important;
+}
+.sidebar.collapsed:hover .sidebar-logo .comercia-logo-img {
+  height: 34px !important;
+  width: auto !important;
+  max-width: 165px !important;
+}
+/* En móvil nunca expandir por hover */
+@media (max-width: 760px) {
   .sidebar.collapsed:hover {
-    width: 252px;
-    box-shadow: 6px 0 32px rgba(26, 58, 74, 0.16);
-    z-index: 40;
-  }
-  .sidebar.collapsed:hover .sidebar-brand {
-    justify-content: space-between;
-    padding: 0 9px;
-  }
-  .sidebar.collapsed:hover .brand-copy,
-  .sidebar.collapsed:hover .merchant-copy,
-  .sidebar.collapsed:hover .merchant-switch > svg,
-  .sidebar.collapsed:hover .side-label,
-  .sidebar.collapsed:hover .side-link span,
-  .sidebar.collapsed:hover .nav-count,
-  .sidebar.collapsed:hover .help-card,
-  .sidebar.collapsed:hover .user-copy {
-    display: initial;
-  }
-  .sidebar.collapsed:hover .merchant-copy b,
-  .sidebar.collapsed:hover .merchant-copy small,
-  .sidebar.collapsed:hover .user-copy b,
-  .sidebar.collapsed:hover .user-copy small {
-    display: block;
-  }
-  .sidebar.collapsed:hover .merchant-switch {
-    justify-content: flex-start;
-    padding: 10px 9px;
-  }
-  .sidebar.collapsed:hover .side-link {
-    justify-content: flex-start;
-    padding: 0 11px;
-  }
-  .sidebar.collapsed:hover .side-link.active:before {
-    left: -14px;
-  }
-  .sidebar.collapsed:hover .user-card {
-    justify-content: flex-start;
-    flex-direction: row;
-    gap: 9px;
-    padding: 11px 6px 5px;
-  }
-  .sidebar.collapsed:hover .collapse-btn {
-    margin: 0;
-  }
-  .sidebar.collapsed:hover .sidebar-logo-full {
-    display: inline-flex !important;
-  }
-  .sidebar.collapsed:hover .sidebar-logo-icon {
-    display: none !important;
-  }
-  .sidebar.collapsed:hover .sidebar-logo .comercia-logo-img {
-    height: 34px;
-    width: auto;
-    max-width: 165px;
+    width: 76px !important;
+    box-shadow: none !important;
+    overflow: hidden;
   }
 }
 .workspace:has(.sidebar.collapsed) .workspace-main {
@@ -4819,13 +4834,13 @@ table {
 }
 .inbox-ribbon b {
   font:
-    700 10px 'Syne',
+    700 12px 'Syne',
     sans-serif;
-  color: #486858;
+  color: #365c49;
 }
 .inbox-ribbon p {
-  font-size: 8px;
-  color: #80948a;
+  font-size: 10px;
+  color: #5c7568;
   margin: 4px 0 0;
 }
 .ribbon-count {
@@ -4837,8 +4852,8 @@ table {
 }
 .ribbon-count small {
   display: block;
-  font: 7px 'DM Mono';
-  color: #92a399;
+  font: 9px 'DM Mono';
+  color: #61786b;
   margin-top: 1px;
 }
 .inbox-layout {
@@ -4865,7 +4880,7 @@ table {
 }
 .queue-head h3 {
   font:
-    700 12px 'Syne',
+    700 14px 'Syne',
     sans-serif;
   color: #47605d;
   margin: 5px 0 0;
@@ -4941,17 +4956,17 @@ table {
   text-overflow: ellipsis;
 }
 .alert-card-copy b {
-  font-size: 9px;
-  color: #526866;
+  font-size: 11px;
+  color: #3f5b55;
 }
 .alert-card-copy small {
-  font-size: 8px;
-  color: #899792;
+  font-size: 10px;
+  color: #5e716a;
   margin-top: 4px;
 }
 .alert-card-copy .alert-time {
-  font: 7px 'DM Mono';
-  color: #a4aeaa;
+  font: 9px 'DM Mono';
+  color: #64766e;
 }
 .alert-chevron {
   margin-top: 7px;
@@ -4964,8 +4979,8 @@ table {
   display: flex;
   align-items: flex-start;
   gap: 6px;
-  color: #84938d;
-  font-size: 7px;
+  color: #5e7168;
+  font-size: 9px;
   line-height: 1.5;
 }
 .queue-privacy-note svg {
@@ -4990,12 +5005,12 @@ table {
   margin-bottom: 9px;
 }
 .queue-empty b {
-  font-size: 9px;
-  color: #688076;
+  font-size: 11px;
+  color: #4f6e5e;
 }
 .queue-empty small {
-  font-size: 8px;
-  color: #9ba8a2;
+  font-size: 10px;
+  color: #64766e;
   line-height: 1.5;
   max-width: 155px;
   margin-top: 4px;
@@ -5039,12 +5054,12 @@ table {
   text-overflow: ellipsis;
 }
 .conversation-contact b {
-  font-size: 10px;
-  color: #4e6564;
+  font-size: 12px;
+  color: #3d5958;
 }
 .conversation-contact small {
-  font-size: 8px;
-  color: #93a09c;
+  font-size: 10px;
+  color: #5f736c;
   margin-top: 3px;
 }
 .conversation-head-actions {
@@ -5056,8 +5071,8 @@ table {
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 7px;
-  color: #8b9d94;
+  font-size: 9px;
+  color: #587466;
 }
 .conversation-live i {
   width: 5px;
@@ -5087,8 +5102,8 @@ table {
   flex: none;
 }
 .context-strip p {
-  font-size: 8px;
-  color: #7f8f88;
+  font-size: 10px;
+  color: #536b60;
   line-height: 1.45;
   margin: 0;
 }
@@ -5107,13 +5122,13 @@ table {
   margin-top: 1px;
 }
 .privacy-banner b {
-  font-size: 9px;
+  font-size: 11px;
   color: #886e3f;
 }
 .privacy-banner p {
-  font-size: 8px;
+  font-size: 10px;
   line-height: 1.55;
-  color: #9c8a65;
+  color: #766742;
   margin: 4px 0 0;
 }
 .conversation-thread {
@@ -5130,13 +5145,63 @@ table {
 .message-row {
   display: flex;
   align-items: flex-end;
-  gap: 7px;
-  max-width: 83%;
+  gap: 8px;
+  max-width: 80%;
 }
-.message-owner {
+
+/* Cliente a la derecha (estilo WhatsApp) */
+.message-customer {
   align-self: flex-end;
   flex-direction: row-reverse;
 }
+.message-customer .message-author {
+  text-align: right;
+  margin-right: 3px;
+  color: #277969;
+  font-weight: 600;
+}
+.message-customer .message-body > small {
+  text-align: right;
+}
+.message-customer .message-avatar {
+  background: #d8f1e5;
+  color: #1f6b53;
+}
+.message-customer .bubble-customer {
+  background: #e2f5ec;
+  border: 1px solid rgba(45, 140, 122, 0.22);
+  color: #1a4237;
+  border-bottom-right-radius: 3px;
+  border-bottom-left-radius: 10px;
+  box-shadow: 0 1px 3px rgba(26, 58, 74, 0.05);
+}
+
+/* Chat del comercio (Asistente o Dueño) a la izquierda */
+.message-store,
+.message-other {
+  align-self: flex-start;
+  flex-direction: row;
+}
+.message-store .message-author,
+.message-other .message-author {
+  text-align: left;
+  margin-left: 3px;
+}
+.message-store .bubble-bot {
+  background: #ffffff;
+  border: 1px solid rgba(26, 58, 74, 0.12);
+  color: var(--navy);
+  border-bottom-left-radius: 3px;
+  box-shadow: 0 1px 3px rgba(26, 58, 74, 0.04);
+}
+.message-store .bubble-owner {
+  background: #fff8ee;
+  border: 1px solid rgba(244, 166, 35, 0.25);
+  color: #634007;
+  border-bottom-left-radius: 3px;
+  box-shadow: 0 1px 3px rgba(26, 58, 74, 0.04);
+}
+
 .message-avatar {
   width: 22px;
   height: 22px;
@@ -5151,62 +5216,43 @@ table {
   flex: none;
 }
 .message-avatar.avatar-owner {
-  background: #dfeee5;
-  color: #3f866a;
+  background: #fbeee0;
+  color: #925c0a;
+}
+.message-avatar.avatar-bot {
+  background: #e7eff2;
+  color: #2b5669;
 }
 .message-body {
   min-width: 0;
 }
 .message-author {
   display: block;
-  color: #9ba8a1;
-  font: 7px 'DM Mono';
+  color: #5e7469;
+  font: 9px 'DM Mono';
   margin: 0 0 4px 3px;
 }
-.message-owner .message-author {
-  text-align: right;
-  margin-right: 3px;
-}
 .message-bubble {
-  padding: 9px 11px;
-  border-radius: 10px;
-  font-size: 9px;
+  padding: 9px 12px;
+  border-radius: 11px;
+  font-size: 12px;
   line-height: 1.55;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
-.bubble-customer {
-  border: 1px solid #edf1ee;
-  background: #f7f9f7;
-  color: #566b66;
-  border-bottom-left-radius: 3px;
-}
-.bubble-bot {
-  background: #eef5f1;
-  color: #5a786c;
-  border-bottom-left-radius: 3px;
-}
-.bubble-owner {
-  background: #e4f3e9;
-  color: #496c59;
-  border-bottom-right-radius: 3px;
-}
 .message-body > small {
   display: block;
-  color: #a9b2ad;
-  font-size: 7px;
+  color: #64776e;
+  font-size: 9px;
   margin: 4px 2px 0;
-}
-.message-owner .message-body > small {
-  text-align: right;
 }
 .window-note {
   display: flex;
   align-items: center;
   gap: 5px;
   padding: 6px 14px;
-  color: #82938b;
-  font-size: 7px;
+  color: #5c7166;
+  font-size: 9px;
 }
 .window-note svg {
   color: #7ea78e;
@@ -5228,15 +5274,15 @@ table {
   outline: 0;
   background: transparent;
   padding: 6px;
-  color: #506762;
-  font-size: 9px;
+  color: #36564d;
+  font-size: 12px;
 }
 .reply-composer input::placeholder {
-  color: #a5afaa;
+  color: #63766e;
 }
 .reply-composer .button {
   min-height: 31px;
-  font-size: 8px;
+  font-size: 10px;
 }
 .composer-divider {
   height: 18px;
@@ -5687,6 +5733,69 @@ button,
   }
   .collapse-btn {
     display: none;
+  }
+  /* Hover expand en pantallas medianas (drawer siempre colapsado aquí) */
+  .sidebar:not(.mobile-open):hover {
+    width: 252px !important;
+    box-shadow: 6px 0 32px rgba(26, 58, 74, 0.16) !important;
+    z-index: 40 !important;
+    overflow: visible;
+  }
+  .sidebar:not(.mobile-open):hover .sidebar-brand {
+    justify-content: space-between !important;
+    padding: 0 9px !important;
+  }
+  .sidebar:not(.mobile-open):hover .brand-lockup {
+    justify-content: flex-start !important;
+    width: auto !important;
+  }
+  .sidebar:not(.mobile-open):hover .brand-copy,
+  .sidebar:not(.mobile-open):hover .merchant-copy,
+  .sidebar:not(.mobile-open):hover .merchant-switch > svg,
+  .sidebar:not(.mobile-open):hover .side-label,
+  .sidebar:not(.mobile-open):hover .side-link span,
+  .sidebar:not(.mobile-open):hover .nav-count,
+  .sidebar:not(.mobile-open):hover .help-card,
+  .sidebar:not(.mobile-open):hover .user-copy {
+    display: revert !important;
+  }
+  .sidebar:not(.mobile-open):hover .merchant-copy b,
+  .sidebar:not(.mobile-open):hover .merchant-copy small,
+  .sidebar:not(.mobile-open):hover .user-copy b,
+  .sidebar:not(.mobile-open):hover .user-copy small {
+    display: block !important;
+  }
+  .sidebar:not(.mobile-open):hover .side-link span,
+  .sidebar:not(.mobile-open):hover .nav-count {
+    display: inline !important;
+  }
+  .sidebar:not(.mobile-open):hover .help-card {
+    display: block !important;
+  }
+  .sidebar:not(.mobile-open):hover .merchant-switch {
+    justify-content: flex-start !important;
+    padding: 10px 9px !important;
+  }
+  .sidebar:not(.mobile-open):hover .side-link {
+    justify-content: flex-start !important;
+    padding: 0 11px !important;
+  }
+  .sidebar:not(.mobile-open):hover .user-card {
+    justify-content: flex-start !important;
+    flex-direction: row !important;
+    gap: 9px !important;
+    padding: 11px 6px 5px !important;
+  }
+  .sidebar:not(.mobile-open):hover .sidebar-logo-full {
+    display: inline-flex !important;
+  }
+  .sidebar:not(.mobile-open):hover .sidebar-logo-icon {
+    display: none !important;
+  }
+  .sidebar:not(.mobile-open):hover .sidebar-logo .comercia-logo-img {
+    height: 34px !important;
+    width: auto !important;
+    max-width: 165px !important;
   }
   .metric-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

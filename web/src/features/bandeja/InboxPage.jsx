@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   Check,
@@ -7,6 +7,7 @@ import {
   CircleHelp,
   Clock3,
   MessageCircle,
+  RotateCw,
   Send,
   ShieldAlert,
   ShieldCheck,
@@ -42,6 +43,11 @@ export function InboxPage() {
   const toast = useToast();
   const current = items.find((alert) => alert.id === active) || items[0] || null;
   const sendUrlConfigured = Boolean(import.meta.env.VITE_N8N_PANEL_ENVIAR_URL?.trim());
+  const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [current?.mensajes?.length, current?.id]);
 
   function select(alert) {
     setActive(alert.id);
@@ -116,7 +122,7 @@ export function InboxPage() {
               <i />
               {items.length} por atender
             </span>
-            <Button onClick={() => query.refetch()} icon={CheckCheck}>
+            <Button onClick={() => query.refetch()} loading={query.isFetching} icon={CheckCheck}>
               Actualizar
             </Button>
           </>
@@ -194,6 +200,15 @@ export function InboxPage() {
                     <i />
                     Pendiente
                   </span>
+                  <button
+                    type="button"
+                    className="icon-button"
+                    title="Actualizar mensajes de la conversación"
+                    aria-label="Actualizar mensajes"
+                    onClick={() => query.refetch()}
+                  >
+                    <RotateCw size={15} className={query.isFetching ? 'spin' : ''} />
+                  </button>
                   {current.tipo !== 'solicitud' && (
                     <button
                       className="icon-button"
@@ -240,6 +255,7 @@ export function InboxPage() {
                   {(current.mensajes || []).map((message, index) => (
                     <MessageBubble key={`${message.fecha}-${index}`} message={message} />
                   ))}
+                  <div ref={messagesEndRef} />
                 </div>
               ) : (
                 <div className="protected-empty">
@@ -408,20 +424,31 @@ function AlertCard({ alert, active, onClick }) {
 }
 
 function MessageBubble({ message }) {
-  const owner = message.autor === 'dueño';
+  const isCustomer = message.autor === 'cliente';
+  const isOwner = message.autor === 'dueño';
+  const isBot = message.autor === 'bot';
+  const content = message.contenido?.trim() || 'Mensaje recibido sin contenido guardado';
   return (
-    <div className={`message-row ${owner ? 'message-owner' : 'message-other'}`}>
-      <div className={`message-avatar ${owner ? 'avatar-owner' : ''}`}>
-        {message.autor === 'bot' ? 'C' : owner ? 'T' : 'C'}
+    <div className={`message-row ${isCustomer ? 'message-customer' : 'message-store'}`}>
+      <div
+        className={`message-avatar ${isCustomer ? 'avatar-customer' : isBot ? 'avatar-bot' : 'avatar-owner'}`}
+      >
+        {isBot ? 'IA' : isCustomer ? 'C' : 'T'}
       </div>
       <div className="message-body">
         <span className="message-author">
-          {message.autor === 'bot' ? 'Asistente ComercIA' : owner ? 'Tú' : 'Cliente'}
+          {isCustomer
+            ? 'Cliente'
+            : isBot
+              ? 'Asistente ComercIA'
+              : isOwner
+                ? 'Tú (Comercio)'
+                : 'Comercio'}
         </span>
         <div
-          className={`message-bubble ${owner ? 'bubble-owner' : message.autor === 'bot' ? 'bubble-bot' : 'bubble-customer'}`}
+          className={`message-bubble ${isCustomer ? 'bubble-customer' : isBot ? 'bubble-bot' : 'bubble-owner'}`}
         >
-          {message.contenido}
+          {content}
         </div>
         <small>{formatDateTime(message.fecha)}</small>
       </div>

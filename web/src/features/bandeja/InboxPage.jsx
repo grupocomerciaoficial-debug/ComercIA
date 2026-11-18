@@ -244,8 +244,14 @@ export function InboxPage() {
                       <Clock3 size={14} />
                     </span>
                     <p>
-                      La atención automática está pausada. Continúa la conversación con una
-                      respuesta cercana.
+                      La atención automática está pausada.{' '}
+                      {current.tipo !== 'persona' || !current.autorizado
+                        ? 'Continúa la conversación desde aquí.'
+                        : current.reactivar_bot_min == null
+                          ? 'Se reactiva cuando pulses Finalizar atención.'
+                          : current.ultima_actividad
+                            ? 'Se reactivará aproximadamente a las ' + new Intl.DateTimeFormat('es-CO', { hour: 'numeric', minute: '2-digit', timeZone: 'America/Bogota' }).format(new Date(new Date(current.ultima_actividad).getTime() + current.reactivar_bot_min * 60_000)) + '.'
+                            : 'Se reactivará tras ' + current.reactivar_bot_min + ' minutos sin actividad.'}
                     </p>
                   </div>
                 )}

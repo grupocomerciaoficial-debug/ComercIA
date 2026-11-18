@@ -2,12 +2,10 @@ import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import {
   Bell,
-  BookOpenText,
   ChevronLeft,
   ChevronRight,
   CircleHelp,
   FileText,
-  House,
   Package,
   ReceiptText,
   ShieldCheck,
@@ -17,12 +15,10 @@ import {
 import { ComerciaLogo } from '../../shared/ui/ComerciaLogo.jsx';
 
 const ownerLinks = [
-  ['/inicio', 'Inicio', House],
   ['/pedidos', 'Pedidos', ReceiptText],
-  ['/catalogo', 'Catálogo', Package],
-  ['/atencion', 'Atención', Bell],
+  ['/catalogo', 'Productos', Package],
+  ['/atencion', 'Mensajes por atender', Bell],
   ['/comercio', 'Mi comercio', Store],
-  ['/guia', 'Guía del negocio', BookOpenText],
 ];
 const adminLinks = [['/admin', 'Comercios', Store]];
 
@@ -112,7 +108,7 @@ export function Sidebar({
             >
               <Icon size={18} />
               <span>{label}</span>
-              {label === 'Atención' && count > 0 && (
+              {label === 'Mensajes por atender' && count > 0 && (
                 <em className="nav-count">{count > 99 ? '99+' : count}</em>
               )}
             </NavLink>

@@ -92,7 +92,7 @@ export function LoginPage() {
   const submit = handleSubmit(async (credentials) => {
     try {
       const session = await signIn(credentials);
-      navigate(location.state?.from || (session.user.role === 'admin' ? '/admin' : '/inicio'), {
+      navigate(location.state?.from || (session.user.role === 'admin' ? '/admin' : '/pedidos'), {
         replace: true,
       });
     } catch (error) {

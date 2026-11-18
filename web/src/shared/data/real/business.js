@@ -1,7 +1,7 @@
 import { getSupabase, translateDatabaseError } from './supabase.js';
 
 const businessColumns =
-  'id_comercio,nombre,direccion,horario_atencion,datos_transferencia,entregas,modo_seguimiento,tiempo_preparacion,tiempo_respuesta,telefono_alertas,canal';
+  'id_comercio,nombre,direccion,horario_atencion,datos_transferencia,entregas,modo_seguimiento,tiempo_preparacion,tiempo_respuesta,telefono_alertas,canal,reactivar_bot_min';
 const weekDays = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
 
 function scheduleToForm(schedule) {
@@ -45,6 +45,7 @@ function fromRow(row) {
     modo_seguimiento: row.modo_seguimiento || 'basico',
     tiempo_estimado: row.tiempo_preparacion || '',
     tiempo_respuesta_humana: row.tiempo_respuesta || '',
+    reactivar_bot_min: row.reactivar_bot_min ?? '',
     telefono_alertas: row.telefono_alertas || '',
     canal: row.canal || 'telegram',
   };
@@ -74,6 +75,7 @@ export async function saveBusiness(value, { commerceId } = {}) {
     tiempo_preparacion: String(value.tiempo_estimado || '').trim() || null,
     tiempo_respuesta: String(value.tiempo_respuesta_humana || '').trim() || null,
     telefono_alertas: value.telefono_alertas.trim() || null,
+    reactivar_bot_min: value.reactivar_bot_min === '' ? null : Number(value.reactivar_bot_min),
   };
   const { data, error } = await getSupabase()
     .from('comercios')

@@ -113,19 +113,34 @@ export async function listOrders({
 
   const orders = data || [];
   const authorizedReferences = new Set(orders.map((row) => row.cliente_wa_id).filter(Boolean));
-  const [customers, channel] = await Promise.all([
+  const [customers, channel, detailsResult] = await Promise.all([
     customerMap(supabase, commerceId, orders, authorizedReferences),
     getCommerceChannel(supabase, commerceId),
+    authorizedReferences.size
+      ? supabase
+          .from('detalle_pedido')
+          .select('id_pedido,cantidad')
+          .in(
+            'id_pedido',
+            orders.filter((row) => authorizedReferences.has(row.cliente_wa_id)).map((row) => row.id_pedido),
+          )
+      : Promise.resolve({ data: [], error: null }),
   ]);
+  if (detailsResult.error) throw translateDatabaseError(detailsResult.error);
+  const itemCounts = new Map();
+  for (const item of detailsResult.data || []) {
+    itemCounts.set(item.id_pedido, (itemCounts.get(item.id_pedido) || 0) + Number(item.cantidad || 0));
+  }
   return {
-    items: orders.map((row) =>
-      toPanelOrder(
+    items: orders.map((row) => ({
+      ...toPanelOrder(
         row,
         customers.get(row.id_cliente),
         authorizedReferences.has(row.cliente_wa_id),
         channel,
       ),
-    ),
+      itemCount: authorizedReferences.has(row.cliente_wa_id) ? itemCounts.get(row.id_pedido) || 0 : null,
+    })),
     count: count || 0,
     page,
     pageSize,
@@ -183,7 +198,7 @@ export async function getOrder(id, { commerceId } = {}) {
     aviso: entry.aviso_estado,
     fecha: entry.creado_en,
   }));
-  result.aviso = result.historial.at(-1)?.aviso === 'no_enviado' ? 'no enviado' : null;
+  result.aviso = result.historial.at(-1)?.aviso || null;
   result.historial = result.historial.map((entry) => ({
     ...entry,
     estado_nuevo: entry.estado_nuevo,

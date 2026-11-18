@@ -23,6 +23,7 @@ export const businessSchema = z.object({
   telefono_alertas: z.string().trim().max(24).default(''),
   tiempo_respuesta_humana: z.string().trim().max(100).default(''),
   tiempo_estimado: z.string().trim().max(100).default(''),
+  reactivar_bot_min: z.union([z.literal(''), z.coerce.number().int().min(5).max(1440)]).default(60),
   modo_seguimiento: z.enum(['basico', 'completo']),
   entregas: z.object({ domicilio: z.boolean(), recogida: z.boolean() }),
   horario: z.record(

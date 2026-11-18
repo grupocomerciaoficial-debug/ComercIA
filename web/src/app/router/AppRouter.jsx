@@ -25,7 +25,7 @@ export function AppRouter() {
       <Route path="/terminos" element={<TermsPage />} />
       <Route element={<RequireSession role="dueno" />}>
         <Route element={<AppShell />}>
-          <Route index element={<Navigate to="/inicio" replace />} />
+          <Route index element={<Navigate to="/pedidos" replace />} />
           <Route path="/inicio" element={<DashboardPage />} />
           <Route path="/pedidos" element={<OrdersPage />} />
           <Route path="/catalogo" element={<CatalogPage />} />

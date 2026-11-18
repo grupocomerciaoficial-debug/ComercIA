@@ -33,6 +33,7 @@ const EMPTY = {
   datos_transferencia: '',
   telefono_alertas: '',
   tiempo_respuesta_humana: '',
+  reactivar_bot_min: 60,
   tiempo_estimado: '',
   modo_seguimiento: 'basico',
   entregas: { domicilio: true, recogida: true },
@@ -175,6 +176,20 @@ export function BusinessPage() {
               copy="Así el asistente puede dar expectativas claras."
             />
             <div className="settings-form-grid">
+              <FormField
+                id="reactivar_bot_min"
+                label="Reactivar el asistente automáticamente"
+                hint="Si no hay mensajes en ese tiempo, el asistente vuelve a atender solo."
+                error={errors.reactivar_bot_min?.message}
+              >
+                <select id="reactivar_bot_min" {...register('reactivar_bot_min')}>
+                  <option value="">Solo manual</option>
+                  <option value="30">30 minutos</option>
+                  <option value="60">1 hora</option>
+                  <option value="120">2 horas</option>
+                  <option value="1440">24 horas</option>
+                </select>
+              </FormField>
               <FormField
                 id="tiempo_respuesta_humana"
                 label="Tiempo para respuesta humana"

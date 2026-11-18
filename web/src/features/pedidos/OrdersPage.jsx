@@ -340,7 +340,7 @@ function OrderRow({ order, index, onOpen, onTransition, pending, isNew }) {
             <b>{order.id}</b>
             {isNew && <small className="new-order-label">Nuevo · recibido recientemente</small>}
             <small>
-              {getChannel(order.canal).label} · {order.items?.length || 0} artículos
+              {getChannel(order.canal).label} · {order.itemCount ?? '—'} unidades
             </small>
           </span>
         </button>
@@ -372,7 +372,7 @@ function OrderRow({ order, index, onOpen, onTransition, pending, isNew }) {
       </td>
       <td>
         <StatusBadge status={order.estado} />
-        {order.aviso === 'no enviado' && <small className="notice-failed">Aviso no enviado</small>}
+        {order.aviso === 'no_enviado' && <small className="notice-failed">Aviso no enviado</small>}
       </td>
       <td className="order-total">{formatCOP(order.total)}</td>
       <td>
@@ -466,13 +466,16 @@ function OrderDetail({ order, loading, error, onClose, onRetry, onTransition, pe
               </div>
               <OrderStateHelp status={order.estado} />
             </div>
-            {order.aviso === 'no enviado' && (
+            {order.aviso && order.aviso !== 'no_aplica' && (
               <div className="notice-box notice-amber">
                 <CircleAlert size={16} />
-                <span>
-                  <b>No se pudo enviar el aviso.</b> El pedido sí quedó guardado. El equipo debe
-                  revisar la entrega del aviso por el canal configurado.
-                </span>
+                <span><b>{order.aviso === 'enviado' ? 'Aviso enviado.' : order.aviso === 'pendiente' ? 'Enviando aviso…' : 'Aviso no enviado.'}</b>{order.aviso === 'no_enviado' ? ' El cliente no recibió el aviso. Puedes escribirle desde Mensajes.' : ''}</span>
+              </div>
+            )}
+            {Number(order.total) === 0 && (
+              <div className="notice-box notice-amber" role="alert">
+                <CircleAlert size={16} />
+                <span><b>Total inconsistente, revisar.</b> Este pedido tiene total $0; valida sus ítems antes de procesarlo.</span>
               </div>
             )}
             <div className="detail-grid">

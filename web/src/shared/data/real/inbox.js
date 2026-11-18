@@ -4,6 +4,7 @@ const alertColumns = 'id,id_comercio,wa_id,tipo,con_contenido,atendida,id_conver
 const alertType = {
   hablar_con_persona: 'persona',
   no_autorizo_tratamiento: 'sin_autorizacion',
+  sin_autorizacion: 'sin_autorizacion',
   solicitud_modificacion: 'solicitud',
   solicitud_cancelacion: 'solicitud',
 };
@@ -17,7 +18,7 @@ export async function listAlerts({ commerceId } = {}) {
       .eq('id_comercio', commerceId)
       .eq('atendida', false)
       .order('creado_en', { ascending: false }),
-    supabase.from('comercios').select('canal').eq('id_comercio', commerceId).maybeSingle(),
+    supabase.from('comercios').select('canal,reactivar_bot_min').eq('id_comercio', commerceId).maybeSingle(),
   ]);
   if (alertsResult.error) throw translateDatabaseError(alertsResult.error);
   if (commerceResult.error) throw translateDatabaseError(commerceResult.error);
@@ -48,6 +49,7 @@ export async function listAlerts({ commerceId } = {}) {
 
   let requests = [];
   let messagesByConversation = new Map();
+  let conversationsById = new Map();
   const authorizedRows = rows.filter((alert) => safeReferences.includes(alert.wa_id));
   if (authorizedRows.length) {
     const { data: pendingRequests, error: requestError } = await supabase
@@ -63,13 +65,22 @@ export async function listAlerts({ commerceId } = {}) {
       ...new Set(authorizedRows.map((alert) => alert.id_conversacion).filter(Boolean)),
     ];
     if (conversationIds.length) {
-      const { data: messages, error: messageError } = await supabase
-        .from('mensajes')
-        .select('id_conversacion,direccion,autor,contenido,fecha_mensaje')
-        .in('id_conversacion', conversationIds)
-        .order('fecha_mensaje', { ascending: true })
-        .limit(500);
+      const [messagesResult, conversationsResult] = await Promise.all([
+        supabase
+          .from('mensajes')
+          .select('id_conversacion,direccion,autor,contenido,fecha_mensaje')
+          .in('id_conversacion', conversationIds)
+          .order('fecha_mensaje', { ascending: true })
+          .limit(500),
+        supabase
+          .from('conversaciones')
+          .select('id_conversacion,pausada,fecha_ultima_actividad')
+          .in('id_conversacion', conversationIds),
+      ]);
+      const { data: messages, error: messageError } = messagesResult;
       if (messageError) throw translateDatabaseError(messageError);
+      if (conversationsResult.error) throw translateDatabaseError(conversationsResult.error);
+      conversationsById = new Map((conversationsResult.data || []).map((row) => [row.id_conversacion, row]));
       messagesByConversation = new Map();
       for (const message of messages || []) {
         const items = messagesByConversation.get(message.id_conversacion) || [];
@@ -121,6 +132,9 @@ export async function listAlerts({ commerceId } = {}) {
       detalle: authorized ? request?.detalle || alertDetails.get(alert.id) || null : null,
       mensajes: authorized ? messagesByConversation.get(alert.id_conversacion) || [] : [],
       con_contenido: authorized,
+      reactivar_bot_min: commerceResult.data?.reactivar_bot_min ?? 60,
+      ultima_actividad: conversationsById.get(alert.id_conversacion)?.fecha_ultima_actividad || null,
+      conversacion_pausada: conversationsById.get(alert.id_conversacion)?.pausada || false,
     };
   });
 }

@@ -1,30 +1,12 @@
-# Documentación del equipo
+# Documentación de ComercIA
 
-Esta carpeta contiene acuerdos y documentos aprobados que se mantienen junto al código. Los casos y resultados ejecutados por QA se guardan en `qa/`.
+Esta carpeta reúne los entregables académicos finales. Las guías de desarrollo y operación están junto a cada componente:
 
-| Carpeta | Contenido |
-| --- | --- |
-| `entregables/` | Versiones finales que se entregarán al curso |
-| `requisitos/` | Requisitos aprobados y trazabilidad |
-| `arquitectura/` | Contratos, acople entre roles y revisión de esquema |
-| `decisiones/` | Registro de decisiones del equipo |
-| `canal/` | Telegram MVP y plan futuro para WhatsApp/Meta |
-| `legal/` | Política de tratamiento y avisos aprobados |
-| `gestion/` | Roles, pendientes y coordinación |
-| `manual-usuario/` | Manual de operación del comercio |
-| `referencias/` | Fuentes y documentos que el equipo puede redistribuir |
+- [Automatizaciones n8n](../n8n/README.md)
+- [Base de datos Supabase](../supabase/README.md)
+- [Panel web](../web/README.md)
+- [Pruebas y resultados de QA](../qa/README.md)
 
-Los documentos personales, borradores, capturas temporales y PDFs de revisión no se versionan aquí.
+## Entregables
 
-## Índice de áreas
-
-- [Arquitectura](arquitectura/README.md)
-- [Canales](canal/README.md)
-- [Decisiones](decisiones/README.md)
-- [Entregables](entregables/README.md)
-- [Gestión](gestion/README.md)
-- [Documentación legal](legal/README.md)
-- [Manual de usuario](manual-usuario/README.md)
-- [Referencias](referencias/README.md)
-- [Requisitos](requisitos/README.md)
-- Casos y evidencias de QA: `../qa/`
+Consulta [el índice de entregables](entregables/README.md). No agregues aquí enlaces de invitación, credenciales, borradores ni archivos temporales.

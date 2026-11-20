@@ -1,16 +1,18 @@
 # Automatizaciones n8n
 
-Esta carpeta contiene los flujos versionados de n8n y los prompts aprobados. El canal del MVP es Telegram; los contratos futuros de WhatsApp/Meta están documentados en `../docs/canal/whatsapp-futuro.md`.
+El canal implementado en el MVP es Telegram. La integración con WhatsApp/Meta es futura y no está incluida en los flujos actuales.
 
 ## Estructura
 
-- `workflows/`: exportaciones JSON de WF-01 a WF-12, sin credenciales incrustadas.
-- `prompts/`: prompts de IA versionados, con límites y ejemplos de prueba.
+- `workflows/V1/` y `workflows/V2/`: exportaciones de WF-01 a WF-12 y del subflujo SUB-01. Mantén cada conjunto dentro de su versión y no combines nodos de versiones distintas.
+- `prompts/`: documentación técnica, diagramas y criterios de los prompts.
 
 ## Credenciales
 
-Recrea las credenciales directamente en la instancia n8n. Guarda solo los nombres y tipos necesarios en la documentación; nunca exportes tokens, claves, secretos ni datos de conexión privados.
+Recrea las credenciales directamente en la instancia n8n. No exportes tokens, claves, secretos, URLs privadas ni datos reales de clientes.
 
-## Integración
+## Integración con el panel
 
-n8n comparte los datos operativos mediante Supabase: comercio, catálogo, guía, conversaciones y pedidos. El endpoint de respuesta manual del panel debe validar el JWT y la autorización por comercio. Los contratos pendientes están en `../docs/arquitectura/contratos.md` y `../docs/arquitectura/checklist-integracion.md`.
+n8n comparte los datos operativos mediante Supabase: comercios, catálogo, guía, conversaciones y pedidos. El endpoint que permite responder desde la bandeja del panel debe validar el JWT de Supabase y la autorización del usuario para ese comercio.
+
+Aplica en orden las migraciones disponibles en `../supabase/migrations` y confirma que la base incluya las funciones que usan los flujos antes de importarlos o activarlos. Consulta `../supabase/README.md` para revisar el esquema y las migraciones.

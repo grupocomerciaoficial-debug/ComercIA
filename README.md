@@ -7,7 +7,7 @@ ComercIA es un asistente de ventas por mensajería con un panel web para adminis
 - `web/`: panel React/Vite conectado directamente a Supabase. El envío de mensajes desde la bandeja usa un endpoint de n8n.
 - `supabase/`: configuración local, migraciones, semillas y pruebas SQL.
 - `n8n/`: flujos, prompts y configuración operativa del bot. Nunca versionar credenciales.
-- `qa/`: casos, evaluación de IA, resultados y evidencias revisadas.
+- `qa/`: guía de aseguramiento de calidad e informes de pruebas.
 - `docs/`: documentación aprobada del equipo y entregables finales.
 
 ## Requisitos y arranque local
@@ -16,20 +16,22 @@ ComercIA es un asistente de ventas por mensajería con un panel web para adminis
 - Docker Desktop iniciado para Supabase local.
 - Supabase CLI ejecutado con `npx`.
 
-Después de integrar la configuración y las migraciones de Supabase, levanta la base local y revisa sus valores:
+Levanta Supabase local y revisa los valores que necesitará el panel:
 
 ```powershell
 npx supabase start
 npx supabase status
 ```
 
-Copia la URL local y la clave pública a `web/.env.local` usando los nombres de `web/.env.example`. Nunca uses `service_role` en el navegador. Después de integrar el paquete de la web, instala y levántala:
+Crea `web/.env.local` con `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`, usando la URL y la clave pública que muestra el CLI. Si vas a habilitar respuestas desde la bandeja, agrega también `VITE_N8N_PANEL_ENVIAR_URL`. Nunca uses `service_role` en el navegador. Instala y levanta el panel:
 
 ```powershell
 Set-Location web
 npm ci
 npm run dev
 ```
+
+La guía de [configuración del panel](web/README.md) detalla las variables de entorno y los comandos disponibles.
 
 La base local se reconstruye con `npx supabase db reset`; el comando elimina los datos de esa instancia local y vuelve a cargar migraciones y semilla. No lo ejecutes si necesitas conservar información local.
 

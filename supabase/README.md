@@ -49,6 +49,6 @@ La web local usa la URL y la clave pública que muestra `npx supabase status`. N
 
 ## Archivos locales excluidos de Git
 
-Las carpetas `.temp/`, `.branches/` y `backups/`, así como `seed.berakah.local.sql`, son estado o respaldos locales y están ignorados por Git. `backups/` se conserva como recuperación local; no la agregues al repositorio.
+Las carpetas `.temp/`, `.branches/` y `backups/`, así como `seed.berakah.local.sql`, son estado local o respaldos y están ignorados por Git. Conserva `backups/` como recuperación local; no la agregues al repositorio.
 
 No guardes aquí exportaciones de datos de remoto ni listas de usuarios. Para compartir o versionar el esquema, usa únicamente las migraciones y `schema_remoto.sql`.

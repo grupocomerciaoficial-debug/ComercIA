@@ -14,21 +14,21 @@ La web incluye acceso por Supabase Auth, configuración del comercio, catálogo,
 
 ## Publicar los documentos legales
 
-Las rutas públicas son `/terminos` y `/privacidad`; no requieren iniciar sesión. Las páginas muestran un estado de documento pendiente hasta que exista el PDF correspondiente. Cuando los DOCX estén completos y aprobados, expórtalos a PDF y copia los archivos a `web/public/legal/` con estos nombres exactos:
+Las rutas públicas son `/terminos` y `/privacidad`; no requieren iniciar sesión. La aplicación busca los PDF en `public/legal/` y muestra un aviso de documento pendiente solo si no encuentra el archivo. El repositorio incluye actualmente:
 
 - `terminos.pdf` para Términos y Condiciones.
 - `politica-tratamiento-datos.pdf` para la Política de Tratamiento de Datos Personales.
 
-Al desplegar en Vercel, los documentos aparecerán en sus rutas públicas y podrán abrirse o descargarse. Las URL estables son `/legal/terminos.pdf` y `/legal/politica-tratamiento-datos.pdf`; configura WF-02 para enlazar `/privacidad` y registrar el identificador de versión de la política por separado. No agregues los PDF hasta retirar campos pendientes y aprobar el contenido.
+Al desplegar en Vercel, los documentos se sirven en `/legal/terminos.pdf` y `/legal/politica-tratamiento-datos.pdf`. Revisa el contenido legal antes de reemplazar estos archivos por versiones nuevas.
 
 Desde esta carpeta (`web/`):
 
 ```powershell
 npm ci
-Copy-Item .env.example .env.local
+if (-not (Test-Path .env.local)) { New-Item -ItemType File .env.local }
 ```
 
-Configura las variables descritas abajo en `web/.env.local`. Este archivo no se debe subir al repositorio.
+Configura las variables descritas abajo en `web/.env.local`. Obtén la URL local y la clave pública con `npx supabase status`. Este archivo no se debe subir al repositorio.
 
 ## Supabase local
 
@@ -41,7 +41,7 @@ npx supabase status
 
 Toma `API_URL` y la clave pública `ANON_KEY` o `PUBLISHABLE_KEY` que muestre el CLI y úsalas como `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`. La clave `service_role` es privada y no debe copiarse al panel ni a variables `VITE_*`.
 
-Las migraciones de `supabase/migrations/` aplican el esquema base y las extensiones del panel. `supabase/seed.sql` carga la información comercial de Berakah junto con registros sintéticos de prueba y cuentas locales. Para reconstruir una base local descartable:
+Las migraciones de `supabase/migrations/` aplican el esquema base y las extensiones del panel. `supabase/seed.sql` carga un comercio y datos ficticios de prueba; no crea cuentas de autenticación. Para reconstruir una base local descartable:
 
 ```powershell
 npx supabase db reset

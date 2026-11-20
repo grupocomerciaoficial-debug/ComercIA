@@ -10,16 +10,25 @@ Panel administrativo para comercios conectado a Supabase local. La aplicación u
 
 ## Instalación
 
-El PR inicial organiza carpetas y documentación. Los comandos de esta sección estarán disponibles después de integrar el manifiesto y el código de la web.
+La web incluye acceso por Supabase Auth, configuración del comercio, catálogo, pedidos, bandeja de atención, guía, páginas públicas de Términos y Política de Tratamiento de Datos, y administración de comercios. El registro público permanece deshabilitado para el MVP.
+
+## Publicar los documentos legales
+
+Las rutas públicas son `/terminos` y `/privacidad`; no requieren iniciar sesión. Las páginas muestran un estado de documento pendiente hasta que exista el PDF correspondiente. Cuando los DOCX estén completos y aprobados, expórtalos a PDF y copia los archivos a `web/public/legal/` con estos nombres exactos:
+
+- `terminos.pdf` para Términos y Condiciones.
+- `politica-tratamiento-datos.pdf` para la Política de Tratamiento de Datos Personales.
+
+Al desplegar en Vercel, los documentos aparecerán en sus rutas públicas y podrán abrirse o descargarse. Las URL estables son `/legal/terminos.pdf` y `/legal/politica-tratamiento-datos.pdf`; configura WF-02 para enlazar `/privacidad` y registrar el identificador de versión de la política por separado. No agregues los PDF hasta retirar campos pendientes y aprobar el contenido.
 
 Desde esta carpeta (`web/`):
 
 ```powershell
 npm ci
-Copy-Item .env.example .env.local
+New-Item -ItemType File .env.local
 ```
 
-Configura las variables descritas abajo en `web/.env.local`. Este archivo no se debe subir al repositorio.
+Agrega a `web/.env.local` las variables descritas abajo. Obtén la URL y la clave pública de `npx supabase status`. Este archivo no se debe subir al repositorio.
 
 ## Supabase local
 
@@ -32,7 +41,7 @@ npx supabase status
 
 Toma `API_URL` y la clave pública `ANON_KEY` o `PUBLISHABLE_KEY` que muestre el CLI y úsalas como `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`. La clave `service_role` es privada y no debe copiarse al panel ni a variables `VITE_*`.
 
-Las migraciones de `supabase/migrations/` aplican el esquema base y las extensiones del panel. `supabase/seed.sql` carga datos ficticios para desarrollo local, incluidas las cuentas indicadas en ese archivo. Para reconstruir una base local descartable:
+Las migraciones de `supabase/migrations/` aplican el esquema base y las extensiones del panel. `supabase/seed.sql` carga un comercio y registros ficticios de prueba; no crea cuentas de autenticación. Para reconstruir una base local descartable:
 
 ```powershell
 npx supabase db reset
@@ -45,7 +54,7 @@ Ese comando borra y vuelve a crear la base local. No lo ejecutes si necesitas co
 - `VITE_SUPABASE_URL`: URL local del API que muestra `supabase status`.
 - `VITE_SUPABASE_ANON_KEY`: clave pública local `anon` o `publishable`.
 - `VITE_N8N_PANEL_ENVIAR_URL`: endpoint HTTPS de n8n para enviar respuestas desde la bandeja. El panel envía `POST` JSON `{ "id_conversacion": number, "contenido": string }` y el JWT de Supabase en `Authorization: Bearer`. El equipo de n8n debe validar esa sesión y aplicar autorización por comercio. Si la variable queda vacía, el envío aparece deshabilitado.
-- `VITE_PRIVACY_POLICY_VERSION`, `VITE_PRIVACY_POLICY_DATE`, `VITE_PRIVACY_CONTROLLER_NAME`, `VITE_PRIVACY_CONTACT_EMAIL`, `VITE_PRIVACY_CONTACT_ADDRESS`: datos que completan la política pública. No publiques el panel mientras el responsable y los canales de contacto sigan pendientes.
+- Los documentos legales se publican como PDF estáticos en `public/legal/`; no necesitan variables de entorno. Completa y aprueba el contenido antes de agregar los archivos.
 
 El panel no usa `service_role`. No incluyas tokens de bot, contraseñas, claves privadas ni secretos de n8n en esta carpeta.
 

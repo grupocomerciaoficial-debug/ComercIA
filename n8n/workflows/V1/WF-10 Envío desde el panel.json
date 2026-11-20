@@ -1,0 +1,577 @@
+{
+  "name": "WF-10 Envío desde el panel",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "panel/enviar",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "https://la-herencia-gaucha.vercel.app/"
+        }
+      },
+      "id": "6f762ede-ab81-402c-8041-1ec06407e3d8",
+      "name": "Webhook /panel/enviar",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        512
+      ],
+      "webhookId": "c5e10718-88df-4045-9da1-3d0d662c2b13"
+    },
+    {
+      "parameters": {
+        "jsCode": "const j=$input.first().json;\nconst token=String(j.headers?.authorization||'').replace('Bearer ','').trim();\nconst conversacion_id=j.body?.conversacion_id;\nconst texto=String(j.body?.texto||'').trim().slice(0,1000);\nreturn [{json:{token,conversacion_id,texto,completo:!!(token&&conversacion_id&&texto)}}];"
+      },
+      "id": "9d4a6b4c-6c60-49a3-ad67-e7f50d9c6da7",
+      "name": "Extraer token y cuerpo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "cc1",
+              "leftValue": "={{ $json.completo }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "8ef36734-9c8b-4abe-8a9e-4e6e3592971b",
+      "name": "¿Cuerpo completo?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        448,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/auth/v1/user",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.token }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "7ddde8b7-acba-453d-8c65-bc5f5219827b",
+      "name": "Validar sesión en Supabase Auth",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        672,
+        416
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "GHBSL4NZxzJsUKti",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "sv1",
+              "leftValue": "={{ !!$json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "c66ccdb3-75c0-483c-9d70-90bf6af922cc",
+      "name": "¿Sesión válida?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        896,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/rpc/verificar_propiedad_conversacion",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({p_user_id:$json.id,p_conversacion_id:$('Extraer token y cuerpo').first().json.conversacion_id}) }}",
+        "options": {}
+      },
+      "id": "b3c0a487-7ac7-471b-8ff2-cb761d47ec60",
+      "name": "Verificar propiedad de la conversación",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1120,
+        320
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "GHBSL4NZxzJsUKti",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "ec1",
+              "leftValue": "={{ $json.permitido }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "d1233a14-93b5-47fa-b793-c6c825747c3f",
+      "name": "¿Es de su comercio?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1344,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const v=$input.first().json; const t=$('Extraer token y cuerpo').first().json;\nreturn [{json:{comercio:{id:v.comercio_id,phone_number_id:v.phone_number_id},mensaje:{wa_id:v.wa_id},wa:{tipo:'texto',texto:t.texto},autor:'dueno',enviar:!!v.wa_id}}];"
+      },
+      "id": "b43393e3-b84e-4f99-823b-6caab37538c9",
+      "name": "Preparar envío",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1568,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "u1U4Iam9WNRMZuo5",
+          "cachedResultName": "SUB-01 Enviar Telegram",
+          "cachedResultUrl": "/workflow/u1U4Iam9WNRMZuo5"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}",
+            "wa": "={{ $json.wa }}",
+            "autor": "dueno",
+            "guardar_contenido": true
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "wa",
+              "displayName": "wa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "autor",
+              "displayName": "autor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "guardar_contenido",
+              "displayName": "guardar_contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "cb4dd0cd-c8ea-4088-b2ff-021f122d1690",
+      "name": "Enviar: Mensaje del dueño",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2016,
+        128
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "ee1",
+              "leftValue": "={{ $json.enviado === true }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "5ee43c71-de36-4409-9ba8-bead03864843",
+      "name": "¿Envío exitoso?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2240,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ok:true}) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "6ef3432e-8a50-48e1-afc2-0a5829beb140",
+      "name": "Responder 200",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        2464,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({error:'fallo_envio'}) }}",
+        "options": {
+          "responseCode": 502
+        }
+      },
+      "id": "d5ac5d58-e96e-463b-9587-329875d8a8bd",
+      "name": "Responder 502 (fallo de envío)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        2464,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({error:'conversacion_ajena'}) }}",
+        "options": {
+          "responseCode": 403
+        }
+      },
+      "id": "e095d62c-26cc-4824-a530-b24b8ea90139",
+      "name": "Responder 403",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1568,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({error:'sesion_invalida'}) }}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "id": "73299272-7b88-4a30-92be-457b92eb23cb",
+      "name": "Responder 401",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1120,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({error:'cuerpo_incompleto'}) }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "d66f4850-1897-4b99-9350-0cc981b443ba",
+      "name": "Responder 400",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        672,
+        608
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook /panel/enviar": {
+      "main": [
+        [
+          {
+            "node": "Extraer token y cuerpo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extraer token y cuerpo": {
+      "main": [
+        [
+          {
+            "node": "¿Cuerpo completo?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Cuerpo completo?": {
+      "main": [
+        [
+          {
+            "node": "Validar sesión en Supabase Auth",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder 400",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar sesión en Supabase Auth": {
+      "main": [
+        [
+          {
+            "node": "¿Sesión válida?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Sesión válida?": {
+      "main": [
+        [
+          {
+            "node": "Verificar propiedad de la conversación",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder 401",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificar propiedad de la conversación": {
+      "main": [
+        [
+          {
+            "node": "¿Es de su comercio?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Es de su comercio?": {
+      "main": [
+        [
+          {
+            "node": "Preparar envío",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder 403",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar envío": {
+      "main": [
+        [
+          {
+            "node": "Enviar: Mensaje del dueño",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar: Mensaje del dueño": {
+      "main": [
+        [
+          {
+            "node": "¿Envío exitoso?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder 502 (fallo de envío)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Envío exitoso?": {
+      "main": [
+        [
+          {
+            "node": "Responder 200",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder 502 (fallo de envío)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "e444e152-8609-46e9-9f60-acc95f1ec1ab",
+  "meta": {
+    "instanceId": "4513e4389da9632a75fc05a757b2c03560d5b2931684deab91f507e8053ea587"
+  },
+  "nodeGroups": [],
+  "id": "KWRsJ2HtL9m7qVGT",
+  "tags": []
+}

@@ -25,10 +25,10 @@ Desde esta carpeta (`web/`):
 
 ```powershell
 npm ci
-New-Item -ItemType File .env.local
+Copy-Item .env.example .env.local
 ```
 
-Agrega a `web/.env.local` las variables descritas abajo. Obtén la URL y la clave pública de `npx supabase status`. Este archivo no se debe subir al repositorio.
+Configura las variables descritas abajo en `web/.env.local`. Este archivo no se debe subir al repositorio.
 
 ## Supabase local
 
@@ -41,7 +41,7 @@ npx supabase status
 
 Toma `API_URL` y la clave pública `ANON_KEY` o `PUBLISHABLE_KEY` que muestre el CLI y úsalas como `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`. La clave `service_role` es privada y no debe copiarse al panel ni a variables `VITE_*`.
 
-Las migraciones de `supabase/migrations/` aplican el esquema base y las extensiones del panel. `supabase/seed.sql` carga un comercio y registros ficticios de prueba; no crea cuentas de autenticación. Para reconstruir una base local descartable:
+Las migraciones de `supabase/migrations/` aplican el esquema base y las extensiones del panel. `supabase/seed.sql` carga la información comercial de Berakah junto con registros sintéticos de prueba y cuentas locales. Para reconstruir una base local descartable:
 
 ```powershell
 npx supabase db reset

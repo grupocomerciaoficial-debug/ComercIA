@@ -1,0 +1,239 @@
+{
+  "name": "WF-11 Tareas programadas",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "id": "0cc0c568-def6-417f-9b19-7853ea2c1314",
+      "name": "Cada 15 minutos",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/rpc/descartar_carritos_expirados",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({}) }}",
+        "options": {}
+      },
+      "id": "371eba31-bdae-46c7-be9d-7cc83334187a",
+      "name": "Descartar carritos expirados (24 h)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        224,
+        0
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Ya4Bdu0DjuhJL6UE",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/rpc/cerrar_atenciones_inactivas",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({}) }}",
+        "options": {}
+      },
+      "id": "a9fbd061-d4c5-4153-ba6c-12b2905ec9aa",
+      "name": "Cerrar atenciones inactivas (24 h)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        224,
+        192
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Ya4Bdu0DjuhJL6UE",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/rpc/listar_avisos_pendientes",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({}) }}",
+        "options": {}
+      },
+      "id": "93ace865-a92a-4df9-a539-c9dd7faaeb4c",
+      "name": "Listar avisos pendientes",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        224,
+        384
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Ya4Bdu0DjuhJL6UE",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "ha1",
+              "leftValue": "={{ !!$json.historial_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "c333393a-1e34-4308-9b32-6b2ee7e02841",
+      "name": "¿Hay avisos pendientes?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        448,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "N0iSHZHrm5VDPjMG",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/N0iSHZHrm5VDPjMG",
+          "cachedResultName": "WF-09 Notificaciones de estado"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "historial_id": "={{ $json.historial_id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "historial_id",
+              "displayName": "historial_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "id": "3739ffac-320d-4148-b382-bed5d01602c6",
+      "name": "Reintentar en WF-09",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        672,
+        384
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Cada 15 minutos": {
+      "main": [
+        [
+          {
+            "node": "Descartar carritos expirados (24 h)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Cerrar atenciones inactivas (24 h)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Listar avisos pendientes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Listar avisos pendientes": {
+      "main": [
+        [
+          {
+            "node": "¿Hay avisos pendientes?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Hay avisos pendientes?": {
+      "main": [
+        [
+          {
+            "node": "Reintentar en WF-09",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "4edc8075-536f-49db-86e4-b6ad86b26d9e",
+  "meta": {
+    "instanceId": "0377e644cf2a884d8c8dbd595763a484cda55998a03ba1ceb5fc410f8bedb2bf"
+  },
+  "nodeGroups": [],
+  "id": "aXoOFG00EdeSrT9o",
+  "tags": []
+}

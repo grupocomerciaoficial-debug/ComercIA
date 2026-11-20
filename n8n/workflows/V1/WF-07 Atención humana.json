@@ -1,0 +1,548 @@
+{
+  "name": "WF-07 Atención humana",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "comercio",
+              "type": "object"
+            },
+            {
+              "name": "mensaje",
+              "type": "object"
+            },
+            {
+              "name": "motivo"
+            }
+          ]
+        }
+      },
+      "id": "ce8607ba-c03e-49de-ad37-c59b7c48dd9f",
+      "name": "Entrada",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.comercio && $json.comercio.id ? \"ok\" : \"\" }}",
+              "rightValue": "ok",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "c2",
+              "leftValue": "={{ $json.mensaje && $json.mensaje.wa_id ? \"ok\" : \"\" }}",
+              "rightValue": "ok",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "c0d75b94-3ab0-4f1c-99a4-6e052662fc39",
+      "name": "¿Datos completos?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/rpc/pausar_conversacion",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({p_comercio_id:$(\"Entrada\").first().json.comercio.id,p_wa_id:$(\"Entrada\").first().json.mensaje.wa_id,p_tipo:$(\"Entrada\").first().json.motivo||\"persona\"}) }}",
+        "options": {}
+      },
+      "id": "04ee65b1-f611-4008-8d8e-96fefc18b73f",
+      "name": "Pausar conversación",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        496,
+        320
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "GHBSL4NZxzJsUKti",
+          "name": "Supabase account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "s1",
+              "leftValue": "={{ $(\"Entrada\").first().json.motivo }}",
+              "rightValue": "sin_autorizacion",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "efc8ef44-2b3c-4741-929d-f7c8b0cc497e",
+      "name": "¿Sin autorización?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        720,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/rpc/crear_alerta",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({p_comercio_id:$(\"Entrada\").first().json.comercio.id,p_wa_id:$(\"Entrada\").first().json.mensaje.wa_id,p_tipo:\"sin_autorizacion\",p_con_contenido:false}) }}",
+        "options": {}
+      },
+      "id": "90040a9e-10e8-4657-88f0-5cbabd097bb2",
+      "name": "Crear alerta sin contenido",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1392,
+        80
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "GHBSL4NZxzJsUKti",
+          "name": "Supabase account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "r1",
+              "name": "ok",
+              "type": "boolean",
+              "value": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6f533c81-b8b5-47cf-94b6-ea6ec52bb450",
+      "name": "Resultado: alerta sin contenido",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1616,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e1",
+              "name": "ok",
+              "type": "boolean",
+              "value": false
+            },
+            {
+              "id": "e2",
+              "name": "error",
+              "type": "string",
+              "value": "fallo_atencion_humana: no se pudo pausar, registrar la alerta o avisar al cliente"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "692cf632-7aa0-4265-bcb8-69172cdeb47d",
+      "name": "Error controlado",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1616,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/rpc/crear_alerta",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({p_comercio_id:$(\"Entrada\").first().json.comercio.id,p_wa_id:$(\"Entrada\").first().json.mensaje.wa_id,p_tipo:\"persona\",p_con_contenido:true}) }}",
+        "options": {}
+      },
+      "id": "e5f68aa3-421e-4b39-ae11-fbc19c33ae42",
+      "name": "Crear alerta: hablar con persona",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        944,
+        448
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "GHBSL4NZxzJsUKti",
+          "name": "Supabase account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx=$('Entrada').first().json;\nreturn [{json:{comercio:ctx.comercio,mensaje:ctx.mensaje,autor:'bot',guardar_contenido:true,wa:{tipo:'texto',texto:'Te atenderá una persona del comercio (no el asistente). Tiempo aproximado: '+(ctx.comercio.tiempo_respuesta||'unos minutos')+'. Puede demorar.'}}}];"
+      },
+      "id": "3c23d612-59f9-4747-9434-db381dd57704",
+      "name": "Armar: Atención humana",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1168,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "u1U4Iam9WNRMZuo5",
+          "cachedResultName": "SUB-01 Enviar Telegram",
+          "cachedResultUrl": "/workflow/u1U4Iam9WNRMZuo5"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}",
+            "wa": "={{ $json.wa }}",
+            "autor": "={{ $json.autor }}",
+            "guardar_contenido": "={{ $json.guardar_contenido }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "wa",
+              "displayName": "wa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "autor",
+              "displayName": "autor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "guardar_contenido",
+              "displayName": "guardar_contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "00c80b04-3877-4c0b-8633-c87c3f0afb21",
+      "name": "Enviar: Atención humana",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1392,
+        368
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "p1",
+              "name": "ok",
+              "type": "boolean",
+              "value": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b2c912e7-4123-420e-84b1-bfa2c9c1e2b0",
+      "name": "Resultado: atención derivada",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1616,
+        608
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "ok",
+              "type": "boolean",
+              "value": false
+            },
+            {
+              "id": "a2",
+              "name": "error",
+              "type": "string",
+              "value": "faltan_datos: comercio.id o mensaje.wa_id"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "41aecb99-c1fc-4649-9ae8-9ff520ad5592",
+      "name": "Error: faltan datos",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        608,
+        96
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Entrada": {
+      "main": [
+        [
+          {
+            "node": "¿Datos completos?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Datos completos?": {
+      "main": [
+        [
+          {
+            "node": "Pausar conversación",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error: faltan datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pausar conversación": {
+      "main": [
+        [
+          {
+            "node": "¿Sin autorización?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error controlado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Sin autorización?": {
+      "main": [
+        [
+          {
+            "node": "Crear alerta sin contenido",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Crear alerta: hablar con persona",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear alerta sin contenido": {
+      "main": [
+        [
+          {
+            "node": "Resultado: alerta sin contenido",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error controlado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear alerta: hablar con persona": {
+      "main": [
+        [
+          {
+            "node": "Armar: Atención humana",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error controlado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar: Atención humana": {
+      "main": [
+        [
+          {
+            "node": "Enviar: Atención humana",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar: Atención humana": {
+      "main": [
+        [
+          {
+            "node": "Resultado: atención derivada",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error controlado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "a0855565-5b10-4bee-ad3c-772c15a69f99",
+  "meta": {
+    "instanceId": "4513e4389da9632a75fc05a757b2c03560d5b2931684deab91f507e8053ea587"
+  },
+  "nodeGroups": [
+    {
+      "id": "3a30216a-5ec2-4ed4-b23b-cce618edc8d5",
+      "name": "Derivar a una persona",
+      "nodeIds": [
+        "04ee65b1-f611-4008-8d8e-96fefc18b73f",
+        "efc8ef44-2b3c-4741-929d-f7c8b0cc497e",
+        "90040a9e-10e8-4657-88f0-5cbabd097bb2",
+        "e5f68aa3-421e-4b39-ae11-fbc19c33ae42",
+        "3c23d612-59f9-4747-9434-db381dd57704",
+        "00c80b04-3877-4c0b-8633-c87c3f0afb21",
+        "6f533c81-b8b5-47cf-94b6-ea6ec52bb450",
+        "b2c912e7-4123-420e-84b1-bfa2c9c1e2b0",
+        "692cf632-7aa0-4265-bcb8-69172cdeb47d"
+      ],
+      "description": "Pausa el bot, deja la alerta al dueño (sin contenido si no hay autorización) y avisa al cliente que lo atenderá una persona"
+    }
+  ],
+  "id": "z5FzJrFVTFZM8JIL",
+  "tags": []
+}

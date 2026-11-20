@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-labelledby="t">
+<title id="t">ComercIA</title>
+<g transform="scale(3.7644)">
+<g transform="translate(18.00595238095239,6.880952380952383)">
+<rect x="10" y="22" width="80" height="94" rx="5" fill="none" stroke="#E8F4F0" stroke-width="4.50"/>
+<rect x="28" y="11" width="44" height="17" rx="5" fill="#E8F4F0"/>
+<rect x="40" y="4" width="20" height="9" rx="3" fill="#E8F4F0"/>
+<path d="M27.04 46V35.5H29.06V46Z M32.51 46 36.35 35.5H38.64L42.47 46H40.33L37.49 37.81L34.64 46ZM34.2 43.62 34.74 42.04H40.09L40.61 43.62Z" fill="#F4A623"/>
+<rect x="21" y="54" width="14" height="14" rx="1.5" fill="none" stroke="#E8F4F0" stroke-width="3.50"/>
+<line x1="44" y1="57.5" x2="78" y2="57.5" stroke="#E8F4F0" stroke-width="3.00" stroke-linecap="round"/>
+<line x1="44" y1="64.5" x2="78" y2="64.5" stroke="#E8F4F0" stroke-width="3.00" stroke-linecap="round"/>
+<rect x="21" y="75" width="14" height="14" rx="1.5" fill="none" stroke="#E8F4F0" stroke-width="3.50"/>
+<line x1="44" y1="78.5" x2="78" y2="78.5" stroke="#E8F4F0" stroke-width="3.00" stroke-linecap="round"/>
+<line x1="44" y1="85.5" x2="78" y2="85.5" stroke="#E8F4F0" stroke-width="3.00" stroke-linecap="round"/>
+<rect x="21" y="96" width="14" height="14" rx="1.5" fill="none" stroke="#E8F4F0" stroke-width="3.50"/>
+<line x1="44" y1="99.5" x2="78" y2="99.5" stroke="#E8F4F0" stroke-width="3.00" stroke-linecap="round"/>
+<line x1="44" y1="106.5" x2="78" y2="106.5" stroke="#E8F4F0" stroke-width="3.00" stroke-linecap="round"/>
+<path d="M24 82.5 L28.8 87.3 L41 72.5" fill="none" stroke="#F4A623" stroke-width="4.00" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</g>
+</svg>

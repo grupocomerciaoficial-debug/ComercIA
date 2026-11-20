@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300" role="img" aria-labelledby="t">
+<title id="t">Sin pedidos todavía</title>
+<ellipse cx="200" cy="158" rx="150" ry="112" fill="#E8F4F0"/>
+<circle cx="62" cy="62" r="9" fill="#F4A623"/>
+<circle cx="346" cy="246" r="7" fill="#2D8C7A"/>
+<circle cx="338" cy="70" r="4" fill="#2D8C7A"/>
+<circle cx="72" cy="232" r="4" fill="#F4A623"/>
+<ellipse cx="200" cy="262" rx="92" ry="8" fill="#1A3A4A" opacity="0.08"/>
+<g fill="none" stroke="#1A3A4A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+
+<path d="M112 168 L142 122 H258 L288 168 V226 a8 8 0 0 1 -8 8 H120 a8 8 0 0 1 -8 -8 Z" fill="#F9F6F1"/>
+<path d="M112 168 H166 q0 24 34 24 q34 0 34 -24 H288" fill="none"/>
+<g stroke="none"><rect x="158" y="46" width="84" height="52" rx="16" fill="#2D8C7A"/>
+<path d="M184 96 L176 116 L202 98 Z" fill="#2D8C7A"/>
+<circle cx="180" cy="72" r="5" fill="#E8F4F0"/><circle cx="200" cy="72" r="5" fill="#E8F4F0"/><circle cx="220" cy="72" r="5" fill="#E8F4F0"/>
+<circle cx="256" cy="52" r="15" fill="#F4A623"/></g>
+<path d="M249 52 L254 57 L263 46" stroke="#1A3A4A" stroke-width="4"/>
+<path d="M176 210 H224" stroke="#2D8C7A" stroke-width="4" stroke-dasharray="2 10"/>
+
+</g>
+</svg>

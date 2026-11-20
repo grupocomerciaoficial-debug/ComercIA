@@ -1,0 +1,193 @@
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import {
+  Bell,
+  ChevronLeft,
+  ChevronRight,
+  CircleHelp,
+  FileText,
+  Package,
+  ReceiptText,
+  ShieldCheck,
+  Store,
+  X,
+} from 'lucide-react';
+import { ComerciaLogo } from '../../shared/ui/ComerciaLogo.jsx';
+
+const ownerLinks = [
+  ['/pedidos', 'Pedidos', ReceiptText],
+  ['/catalogo', 'Productos', Package],
+  ['/atencion', 'Mensajes por atender', Bell],
+  ['/comercio', 'Mi comercio', Store],
+];
+const adminLinks = [['/admin', 'Comercios', Store]];
+
+export function Sidebar({
+  admin,
+  user,
+  count = 0,
+  mobileOpen = false,
+  onMobileClose,
+  onMobileOpen,
+}) {
+  const [collapsed, setCollapsed] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const links = admin ? adminLinks : ownerLinks;
+
+  function closeMobile() {
+    onMobileClose?.();
+  }
+
+  function go(path) {
+    // Si ya estamos en la misma ruta, hace scroll suave al inicio de la página
+    if (location.pathname === path) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      closeMobile();
+      return;
+    }
+    const action = () => navigate(path);
+    if (document.startViewTransition) document.startViewTransition(action);
+    else action();
+    closeMobile();
+  }
+
+  return (
+    <>
+      <div className={`sidebar-backdrop ${mobileOpen ? 'visible' : ''}`} onClick={closeMobile} />
+      <aside
+        className={`sidebar ${collapsed ? 'collapsed' : ''} ${mobileOpen ? 'mobile-open' : ''}`}
+      >
+        <div className="sidebar-brand">
+          <div
+            className="brand-lockup"
+            onClick={() => go(admin ? '/admin' : '/inicio')}
+            role="button"
+            tabIndex="0"
+            title={admin ? 'Administración ComercIA' : 'Inicio ComercIA'}
+          >
+            <ComerciaLogo className="sidebar-logo sidebar-logo-full" variant="dark" />
+            <ComerciaLogo className="sidebar-logo sidebar-logo-icon" variant="icon" />
+          </div>
+          <button
+            type="button"
+            className="icon-button sidebar-close"
+            onClick={closeMobile}
+            aria-label="Cerrar menú"
+          >
+            <X size={18} />
+          </button>
+        </div>
+        <div
+          className="merchant-switch"
+          title={
+            admin
+              ? 'Equipo ComercIA - Administración'
+              : `${user?.comercio_nombre || 'Comercio'} - Comercio conectado`
+          }
+        >
+          <span className="merchant-avatar">
+            {admin ? <ShieldCheck size={17} /> : <Store size={17} />}
+          </span>
+          <span className="merchant-copy">
+            <b>{admin ? 'Equipo ComercIA' : user?.comercio_nombre}</b>
+            <small>{admin ? 'Administración' : 'Comercio conectado'}</small>
+          </span>
+          <ChevronRight size={15} />
+        </div>
+        <p className="side-label">ESPACIO DE TRABAJO</p>
+        <nav className="side-nav" aria-label="Navegación principal">
+          {links.map(([to, label, Icon]) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={to === '/inicio' || to === '/admin'}
+              onClick={closeMobile}
+              className={({ isActive }) => `side-link ${isActive ? 'active' : ''}`}
+              title={label}
+            >
+              <Icon size={18} />
+              <span>{label}</span>
+              {label === 'Mensajes por atender' && count > 0 && (
+                <em className="nav-count">{count > 99 ? '99+' : count}</em>
+              )}
+            </NavLink>
+          ))}
+        </nav>
+        {!admin && <div className="side-spacer" />}
+        <div className="side-bottom">
+          {!admin && (
+            <div className="help-card">
+              <div className="help-mark">
+                <CircleHelp size={16} />
+              </div>
+              <b>¿Necesitas ayuda?</b>
+              <p>Encuentra la guía rápida para gestionar tu tienda.</p>
+              <button type="button" onClick={() => go('/guia')} title="Ver guía del negocio">
+                Ver guía <ChevronRight size={14} />
+              </button>
+            </div>
+          )}
+          <button
+            type="button"
+            className="side-link side-privacy"
+            onClick={() => go('/terminos')}
+            title="Términos y condiciones"
+          >
+            <FileText size={17} />
+            <span>Términos</span>
+          </button>
+          <button
+            type="button"
+            className="side-link side-privacy"
+            onClick={() => go('/privacidad')}
+            title="Política de privacidad"
+          >
+            <ShieldCheck size={17} />
+            <span>Privacidad</span>
+          </button>
+          <div
+            className="user-card"
+            title={
+              user?.name
+                ? `${user.name} (${admin ? 'Administrador' : 'Equipo del comercio'})`
+                : undefined
+            }
+          >
+            <span className="user-avatar">
+              {(user?.name || 'C')
+                .split(' ')
+                .map((part) => part[0])
+                .slice(0, 2)
+                .join('')
+                .toUpperCase()}
+            </span>
+            <span className="user-copy">
+              <b>{user?.name}</b>
+              <small>{admin ? 'Administrador' : 'Equipo del comercio'}</small>
+            </span>
+            <button
+              type="button"
+              className="icon-button collapse-btn"
+              title={collapsed ? 'Expandir menú' : 'Contraer menú'}
+              aria-label={collapsed ? 'Expandir menú lateral' : 'Contraer menú lateral'}
+              onClick={() => setCollapsed((value) => !value)}
+            >
+              {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+            </button>
+          </div>
+        </div>
+      </aside>
+      <button
+        className="mobile-sidebar-toggle"
+        onClick={() => (onMobileOpen ? onMobileOpen() : onMobileClose?.())}
+        aria-label="Abrir menú"
+      >
+        <ComerciaLogo variant="icon" className="mobile-toggle-logo" />
+        <span>
+          Comerc<span>IA</span>
+        </span>
+      </button>
+    </>
+  );
+}

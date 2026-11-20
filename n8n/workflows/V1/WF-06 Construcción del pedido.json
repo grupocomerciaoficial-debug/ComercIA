@@ -1,0 +1,3112 @@
+{
+  "name": "WF-06 Construcción del pedido",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "comercio",
+              "type": "object"
+            },
+            {
+              "name": "mensaje",
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "id": "8d9274fa-cd1d-402e-b613-2909530f4bf7",
+      "name": "Entrada",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        1056
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/rpc/obtener_carrito",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({p_comercio_id:$('Entrada').first().json.comercio.id,p_wa_id:$('Entrada').first().json.mensaje.wa_id}) }}",
+        "options": {}
+      },
+      "id": "9c210475-8d97-43fd-a385-a9b24476f681",
+      "name": "Cargar carrito",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        224,
+        1056
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "GHBSL4NZxzJsUKti",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $('Entrada').first().json;\nconst r = $input.first().json;\nlet subestado = r.subestado || 'items';\nconst t = (ctx.mensaje && ctx.mensaje.texto) || '';\nif (subestado === 'resumen' && (t === 'PAGO_EF' || t === 'PAGO_TR')) subestado = 'pago';\nreturn [{ json: { ...ctx, autor: 'bot', guardar_contenido: false, carrito: r.carrito || { items: [] }, subestado } }];"
+      },
+      "id": "0acb59ad-75b0-42bb-9412-5a6bff9f11a0",
+      "name": "Contexto de pedido",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        1056
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "subestado0",
+                    "leftValue": "={{ $json.subestado===\"items\" }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "items"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "subestado1",
+                    "leftValue": "={{ $json.subestado===\"entrega\" }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "entrega"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "subestado2",
+                    "leftValue": "={{ $json.subestado===\"datos\" }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "datos"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "subestado3",
+                    "leftValue": "={{ $json.subestado===\"pago\" }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "pago"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "subestado4",
+                    "leftValue": "={{ $json.subestado===\"resumen\" }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "resumen"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1fc53ec-0a30-464b-a204-6309264dae6f",
+      "name": "Subestado del pedido",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        672,
+        1008
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "pulsoContinuar",
+              "leftValue": "={{ $json.mensaje.texto===\"PED_CONTINUAR\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "cb6c0e0f-97da-4cc7-9139-b03fe60294a2",
+      "name": "¿Pulsó continuar?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        896,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/rpc/set_subestado",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({p_comercio_id:$('Entrada').first().json.comercio.id,p_wa_id:$('Entrada').first().json.mensaje.wa_id,p_subestado:'entrega'}) }}",
+        "options": {}
+      },
+      "id": "9b9baa36-ce1d-427e-b802-251ef8c73cd7",
+      "name": "Avanzar a entrega",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1168,
+        32
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "GHBSL4NZxzJsUKti",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $('Contexto de pedido').first().json;\nreturn [{ json: { ...ctx, autor: 'bot', guardar_contenido: false, wa: { tipo: 'botones', texto: '¿Cómo deseas recibir tu pedido?', botones: ctx.comercio.entregas.map(e => ({ id: e === 'domicilio' ? 'ENT_DOM' : 'ENT_REC', titulo: e === 'domicilio' ? 'Domicilio' : 'Recogida' })) } } }];"
+      },
+      "id": "223dc084-9c59-406f-81df-fe1c61195205",
+      "name": "Armar: Tipo de entrega",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1392,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "u1U4Iam9WNRMZuo5",
+          "cachedResultName": "SUB-01 Enviar Telegram",
+          "cachedResultUrl": "/workflow/u1U4Iam9WNRMZuo5"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}",
+            "wa": "={{ $json.wa }}",
+            "autor": "={{ $json.autor }}",
+            "guardar_contenido": "={{ $json.guardar_contenido }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "wa",
+              "displayName": "wa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "autor",
+              "displayName": "autor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "guardar_contenido",
+              "displayName": "guardar_contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "7a3c6482-3214-4fa3-bc2d-7ef6b22affd1",
+      "name": "Enviar: Tipo de entrega",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1616,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "iniciaPedido",
+              "leftValue": "={{ $json.mensaje.texto===\"OP_PEDIDO\" || $json.mensaje.texto===\"PED_MAS\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "0217fca6-8cb9-482c-8297-6386164a9f8c",
+      "name": "¿Inicia pedido?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1280,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $('Contexto de pedido').first().json;\nreturn [{ json: { ...ctx, autor: 'bot', guardar_contenido: false, wa: { tipo: 'texto', texto: (ctx.mensaje.texto === 'PED_MAS' ? '¿Qué más quieres agregar? Escribe el producto y la cantidad.' : 'Escribe qué productos quieres pedir y en qué cantidad. Ejemplo: 2 empanadas y 1 gaseosa.') } } }];"
+      },
+      "id": "f8a895f1-2af7-4dd7-b439-c14f27279297",
+      "name": "Armar: Qué desea pedir",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1808,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "u1U4Iam9WNRMZuo5",
+          "cachedResultName": "SUB-01 Enviar Telegram",
+          "cachedResultUrl": "/workflow/u1U4Iam9WNRMZuo5"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}",
+            "wa": "={{ $json.wa }}",
+            "autor": "={{ $json.autor }}",
+            "guardar_contenido": "={{ $json.guardar_contenido }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "wa",
+              "displayName": "wa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "autor",
+              "displayName": "autor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "guardar_contenido",
+              "displayName": "guardar_contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "54f87943-ff79-4cf4-920f-2f29588adf55",
+      "name": "Enviar: Qué desea pedir",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2336,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/productos",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "comercio_id",
+              "value": "=eq.{{ $json.comercio.id }}"
+            },
+            {
+              "name": "eliminado",
+              "value": "eq.false"
+            },
+            {
+              "name": "select",
+              "value": "id,nombre,precio,categoria,disponible"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "4ffd493b-4227-414b-9f96-07a7adca23cf",
+      "name": "Cargar catálogo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1696,
+        320
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "GHBSL4NZxzJsUKti",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $('Contexto de pedido').first().json;\nconst cat = $input.all().map(i => i.json.nombre).filter(Boolean);\nreturn [{ json: { ...ctx, ia: { modo: 'items', texto: ctx.mensaje.texto, catalogo: cat } } }];"
+      },
+      "id": "b48a5afa-8f99-4b6b-a70e-4b85cb37235b",
+      "name": "Preparar IA (ítems)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "HpEgxy6fKhySOVB6",
+          "cachedResultName": "WF-05 Subflujo de IA",
+          "cachedResultUrl": "/workflow/HpEgxy6fKhySOVB6"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "accion": "ya_acepto",
+            "ia": "={{ $json.ia }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "accion",
+              "displayName": "accion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "ia",
+              "displayName": "ia",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "732c4ae5-b4ea-46b5-85ef-7dcf04594d01",
+      "name": "Interpretar con WF-05 (ítems)",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2144,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ia = $input.first().json;\nconst cat = $('Cargar catálogo').all().map(i => i.json);\nconst norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();\nconst encontrados = [], faltantes = [];\nlet cantidad_invalida = false;\nfor (const it of (ia.items || [])) {\n  if (!(it.cantidad > 0)) { cantidad_invalida = true; continue; }\n  const p = cat.find(c => norm(c.nombre) === norm(it.producto)) || cat.find(c => norm(it.producto).length > 2 && norm(c.nombre).includes(norm(it.producto)));\n  if (!p) faltantes.push({ nombre: it.producto, motivo: 'inexistente', categoria: null });\n  else if (!p.disponible) faltantes.push({ nombre: p.nombre, motivo: 'agotado', categoria: p.categoria });\n  else encontrados.push({ producto_id: p.id, nombre: p.nombre, precio: p.precio, cantidad: it.cantidad, especificaciones: it.especificaciones || '' });\n}\nconst ctx = $('Contexto de pedido').first().json;\nreturn [{ json: { ...ctx, encontrados, faltantes, cantidad_invalida } }];"
+      },
+      "id": "0ff25ea5-b2ba-4157-8f03-60727a84db31",
+      "name": "Resolver ítems contra catálogo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2368,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "hayFaltantes",
+              "leftValue": "={{ $json.faltantes.length>0 || $json.cantidad_invalida || $json.encontrados.length===0 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "6544b731-b071-4102-a8e7-abcc90181b80",
+      "name": "¿Hay faltantes o no se entendió?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2336,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/rpc/alternativas_categoria",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({p_comercio_id:$json.comercio.id,p_categoria:($json.faltantes.find(f=>f.categoria)||{}).categoria||null}) }}",
+        "options": {}
+      },
+      "id": "7efab0f1-e97f-4af9-8c8b-e0e14f4b4c41",
+      "name": "Alternativas de la misma categoría",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2752,
+        224
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "GHBSL4NZxzJsUKti",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $('Contexto de pedido').first().json;\nconst falt = $('Resolver ítems contra catálogo').first().json.faltantes.map(f => f.nombre).join(', ') || 'tu mensaje';\nconst alt = $input.all().filter(i => i.json.nombre);\nconst textoAlt = alt.length ? 'Alternativas disponibles: ' + alt.map(i => i.json.nombre + ' ($' + Number(i.json.precio).toLocaleString('es-CO') + ')').join(', ') + '. ' : '';\nreturn [{ json: { ...ctx, autor: 'bot', guardar_contenido: false, wa: { tipo: 'texto', texto: 'No pude agregar: ' + falt + ' (inexistente, agotado o cantidad inválida). ' + textoAlt + 'Escribe menú o pide hablar con una persona.' } } }];"
+      },
+      "id": "c971e7be-5ae5-493b-8870-7dfab577a7e4",
+      "name": "Armar: No disponible y alternativas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2976,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "u1U4Iam9WNRMZuo5",
+          "cachedResultName": "SUB-01 Enviar Telegram",
+          "cachedResultUrl": "/workflow/u1U4Iam9WNRMZuo5"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}",
+            "wa": "={{ $json.wa }}",
+            "autor": "={{ $json.autor }}",
+            "guardar_contenido": "={{ $json.guardar_contenido }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "wa",
+              "displayName": "wa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "autor",
+              "displayName": "autor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "guardar_contenido",
+              "displayName": "guardar_contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "edadac94-2848-4e70-bb9e-24ee63f74edf",
+      "name": "Enviar: No disponible y alternativas",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        3200,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/rpc/agregar_items",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({p_comercio_id:$json.comercio.id,p_wa_id:$json.mensaje.wa_id,p_items:$json.encontrados}) }}",
+        "options": {}
+      },
+      "id": "ac3d93bd-0611-4b20-a368-dec0287873e1",
+      "name": "Guardar ítems en carrito",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2752,
+        416
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "GHBSL4NZxzJsUKti",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $('Contexto de pedido').first().json;\nconst enc = $('Resolver ítems contra catálogo').first().json.encontrados;\nreturn [{ json: { ...ctx, autor: 'bot', guardar_contenido: false, wa: { tipo: 'botones', texto: 'Agregué: ' + enc.map(i => i.cantidad + ' x ' + i.nombre + (i.especificaciones ? ' (' + i.especificaciones + ')' : '')).join(', ') + '. ¿Algo más?', botones: [{ id: 'PED_MAS', titulo: 'Agregar más' }, { id: 'PED_CONTINUAR', titulo: 'Continuar' }] } } }];"
+      },
+      "id": "cfcc0a21-2fe5-4bc4-af6a-0e26433bc5cc",
+      "name": "Armar: Ítems agregados",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2976,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "u1U4Iam9WNRMZuo5",
+          "cachedResultName": "SUB-01 Enviar Telegram",
+          "cachedResultUrl": "/workflow/u1U4Iam9WNRMZuo5"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}",
+            "wa": "={{ $json.wa }}",
+            "autor": "={{ $json.autor }}",
+            "guardar_contenido": "={{ $json.guardar_contenido }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "wa",
+              "displayName": "wa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "autor",
+              "displayName": "autor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "guardar_contenido",
+              "displayName": "guardar_contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "ecffb935-64a7-48f9-a3da-4cafd6004c92",
+      "name": "Enviar: Ítems agregados",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        3200,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $input.first().json;\nconst t = ctx.mensaje.texto;\nreturn [{ json: { ...ctx, entrega: t === 'ENT_DOM' ? 'domicilio' : t === 'ENT_REC' ? 'recogida' : null } }];"
+      },
+      "id": "bf719872-69d3-48de-baae-487a657bbbe9",
+      "name": "Validar tipo de entrega",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "entregaValida",
+              "leftValue": "={{ !!$json.entrega }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "1b07b83c-2297-4f7b-8d16-a1135fb703ac",
+      "name": "¿Entrega válida?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1280,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/rpc/guardar_entrega",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({p_comercio_id:$json.comercio.id,p_wa_id:$json.mensaje.wa_id,p_entrega:$json.entrega}) }}",
+        "options": {}
+      },
+      "id": "ce887cc7-dc9f-474e-ad61-d68959a6a3f6",
+      "name": "Guardar entrega",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1808,
+        576
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "GHBSL4NZxzJsUKti",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "esRecogida",
+              "leftValue": "={{ $('Validar tipo de entrega').first().json.entrega===\"recogida\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "830be38c-1ec0-451c-98ad-962b5e80e67e",
+      "name": "¿Es recogida?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2336,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $('Contexto de pedido').first().json;\nreturn [{ json: { ...ctx, autor: 'bot', guardar_contenido: false, wa: { tipo: 'texto', texto: 'Recoges en: ' + ctx.comercio.direccion + '. Escribe tu nombre.' } } }];"
+      },
+      "id": "d53236f2-65c3-4f15-86fa-f8fc1d89eba9",
+      "name": "Armar: Recogida, dirección del local",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2864,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "u1U4Iam9WNRMZuo5",
+          "cachedResultName": "SUB-01 Enviar Telegram",
+          "cachedResultUrl": "/workflow/u1U4Iam9WNRMZuo5"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}",
+            "wa": "={{ $json.wa }}",
+            "autor": "={{ $json.autor }}",
+            "guardar_contenido": "={{ $json.guardar_contenido }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "wa",
+              "displayName": "wa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "autor",
+              "displayName": "autor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "guardar_contenido",
+              "displayName": "guardar_contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "f9f607c1-23de-4b47-a89b-bd51453e0c5a",
+      "name": "Enviar: Recogida, dirección del local",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        3232,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $('Contexto de pedido').first().json;\nreturn [{ json: { ...ctx, autor: 'bot', guardar_contenido: false, wa: { tipo: 'texto', texto: 'Escribe tu nombre.' } } }];"
+      },
+      "id": "705fb192-4b3d-4836-adda-4efa3d06ea55",
+      "name": "Armar: Pedir nombre",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2752,
+        800
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "u1U4Iam9WNRMZuo5",
+          "cachedResultName": "SUB-01 Enviar Telegram",
+          "cachedResultUrl": "/workflow/u1U4Iam9WNRMZuo5"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}",
+            "wa": "={{ $json.wa }}",
+            "autor": "={{ $json.autor }}",
+            "guardar_contenido": "={{ $json.guardar_contenido }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "wa",
+              "displayName": "wa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "autor",
+              "displayName": "autor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "guardar_contenido",
+              "displayName": "guardar_contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "896362bb-dd7b-41f6-8d21-48a2b3ec946f",
+      "name": "Enviar: Pedir nombre",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2976,
+        800
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $('Contexto de pedido').first().json;\nreturn [{ json: { ...ctx, autor: 'bot', guardar_contenido: false, wa: { tipo: 'botones', texto: 'Elige cómo recibir tu pedido:', botones: ctx.comercio.entregas.map(e => ({ id: e === 'domicilio' ? 'ENT_DOM' : 'ENT_REC', titulo: e === 'domicilio' ? 'Domicilio' : 'Recogida' })) } } }];"
+      },
+      "id": "c5d335fe-c336-484a-a865-f089199bc59b",
+      "name": "Armar: Elegir entrega",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1808,
+        768
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "u1U4Iam9WNRMZuo5",
+          "cachedResultName": "SUB-01 Enviar Telegram",
+          "cachedResultUrl": "/workflow/u1U4Iam9WNRMZuo5"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}",
+            "wa": "={{ $json.wa }}",
+            "autor": "={{ $json.autor }}",
+            "guardar_contenido": "={{ $json.guardar_contenido }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "wa",
+              "displayName": "wa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "autor",
+              "displayName": "autor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "guardar_contenido",
+              "displayName": "guardar_contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "09e88c34-05ba-4dfe-8ae5-f2774202efbb",
+      "name": "Enviar: Elegir entrega",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2336,
+        768
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $input.first().json;\nconst c = ctx.carrito || {};\nconst t = (ctx.mensaje.texto || '').trim();\nlet nombre = c.nombre || null, direccion = c.direccion || null;\nif (!nombre) nombre = t.slice(0, 80);\nelse if (c.entrega === 'domicilio' && !direccion) direccion = t.slice(0, 160);\nconst falta = (c.entrega === 'domicilio' && !direccion) ? 'direccion' : null;\nreturn [{ json: { ...ctx, nombre, direccion, falta } }];"
+      },
+      "id": "af852ec2-5377-4fc2-8a48-60f2e56e0950",
+      "name": "Capturar dato",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        1056
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/rpc/guardar_dato",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({p_comercio_id:$json.comercio.id,p_wa_id:$json.mensaje.wa_id,p_nombre:$json.nombre,p_direccion:$json.direccion,p_subestado:$json.falta?'datos':'pago'}) }}",
+        "options": {}
+      },
+      "id": "f117f98f-9d0a-4c1b-a453-5a0c1c03e56d",
+      "name": "Guardar dato del cliente",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1280,
+        1056
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "GHBSL4NZxzJsUKti",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "faltaDireccion",
+              "leftValue": "={{ $('Capturar dato').first().json.falta===\"direccion\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "90e2dd70-7fd2-45ee-b537-f191681c8196",
+      "name": "¿Falta dirección?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1808,
+        1056
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $('Contexto de pedido').first().json;\nreturn [{ json: { ...ctx, autor: 'bot', guardar_contenido: false, wa: { tipo: 'texto', texto: 'Escribe la dirección de entrega.' } } }];"
+      },
+      "id": "0c663804-6ec6-4ae9-ba36-0b1ff5ad7b74",
+      "name": "Armar: Pedir dirección",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2336,
+        960
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "u1U4Iam9WNRMZuo5",
+          "cachedResultName": "SUB-01 Enviar Telegram",
+          "cachedResultUrl": "/workflow/u1U4Iam9WNRMZuo5"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}",
+            "wa": "={{ $json.wa }}",
+            "autor": "={{ $json.autor }}",
+            "guardar_contenido": "={{ $json.guardar_contenido }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "wa",
+              "displayName": "wa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "autor",
+              "displayName": "autor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "guardar_contenido",
+              "displayName": "guardar_contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "ed5a1fdd-13df-49b4-94b1-6fbe82657383",
+      "name": "Enviar: Pedir dirección",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2864,
+        960
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $('Contexto de pedido').first().json;\nreturn [{ json: { ...ctx, autor: 'bot', guardar_contenido: false, wa: { tipo: 'botones', texto: '¿Cómo vas a pagar?', botones: [{ id: 'PAGO_EF', titulo: 'Efectivo' }, { id: 'PAGO_TR', titulo: 'Transferencia' }] } } }];"
+      },
+      "id": "d7f2370a-dce6-42fa-8619-0b40ce86092d",
+      "name": "Armar: Elegir método de pago",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2224,
+        1280
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "u1U4Iam9WNRMZuo5",
+          "cachedResultName": "SUB-01 Enviar Telegram",
+          "cachedResultUrl": "/workflow/u1U4Iam9WNRMZuo5"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}",
+            "wa": "={{ $json.wa }}",
+            "autor": "={{ $json.autor }}",
+            "guardar_contenido": "={{ $json.guardar_contenido }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "wa",
+              "displayName": "wa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "autor",
+              "displayName": "autor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "guardar_contenido",
+              "displayName": "guardar_contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "4ae68c6b-d1af-4124-bf12-5730dd241092",
+      "name": "Enviar: Elegir método de pago",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2448,
+        1280
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $input.first().json;\nconst t = ctx.mensaje.texto;\nreturn [{ json: { ...ctx, pago: t === 'PAGO_EF' ? 'efectivo' : t === 'PAGO_TR' ? 'transferencia' : null } }];"
+      },
+      "id": "0215c897-5f04-4eff-ab78-798c61e8858c",
+      "name": "Validar método de pago",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        1344
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "pagoValido",
+              "leftValue": "={{ !!$json.pago }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "71a4cc58-17fd-491a-a55f-72c8d8ac5fe5",
+      "name": "¿Pago válido?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1280,
+        1344
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/rpc/guardar_pago",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({p_comercio_id:$json.comercio.id,p_wa_id:$json.mensaje.wa_id,p_pago:$json.pago}) }}",
+        "options": {}
+      },
+      "id": "2faf0e46-ddbc-4493-887d-1023addb6fe9",
+      "name": "Guardar pago",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1696,
+        1376
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "GHBSL4NZxzJsUKti",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/rpc/calcular_resumen",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({p_comercio_id:$('Validar método de pago').first().json.comercio.id,p_wa_id:$('Validar método de pago').first().json.mensaje.wa_id}) }}",
+        "options": {}
+      },
+      "id": "cea85713-29f8-4535-93f9-d0b086ee642e",
+      "name": "Calcular resumen (total en BD)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1920,
+        1376
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "GHBSL4NZxzJsUKti",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/rpc/crear_pedido",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({p_comercio_id:$('Contexto de pedido').first().json.comercio.id,p_wa_id:$('Contexto de pedido').first().json.mensaje.wa_id,p_idempotency_key:$('Contexto de pedido').first().json.mensaje.wa_message_id}) }}",
+        "options": {}
+      },
+      "id": "20266010-a4a0-43fa-88a3-4024134f79f5",
+      "name": "Crear pedido (idempotente)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1280,
+        1728
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "GHBSL4NZxzJsUKti",
+          "name": "Supabase account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "pedidoCreado",
+              "leftValue": "={{ !!$json.numero }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "ff78980a-0833-4a38-8508-9de45d02e921",
+      "name": "¿Pedido creado?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1808,
+        1728
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $('Contexto de pedido').first().json;\nconst r = $input.first().json;\nlet pago = null;\ntry { pago = $('Validar método de pago').first().json.pago; } catch (e) {}\npago = pago || (ctx.carrito && ctx.carrito.pago) || '';\nlet resumen = '';\ntry { resumen = $('Calcular resumen (total en BD)').first().json.resumen_texto || ''; } catch (e) {}\nconst total = '$' + Number(r.total).toLocaleString('es-CO');\nconst cab = 'Pedido #' + r.numero + ' registrado. Total: ' + total;\nlet texto;\nif (pago === 'transferencia') {\n  texto = cab + '\\n\\nPara pagar por transferencia usa estos datos:\\n' + (ctx.comercio.datos_transferencia || '');\n} else if (ctx.carrito && ctx.carrito.entrega === 'domicilio') {\n  texto = '¡Perfecto! Pagas en efectivo cuando recibas tu pedido.\\n\\n' + cab;\n} else {\n  texto = '¡Perfecto! Te esperamos para que recojas tu pedido.\\nDirección: ' + (ctx.comercio.direccion || '') + '\\n\\n' + cab;\n}\nif (resumen) texto += '\\n\\n' + resumen;\ntexto += '\\n\\nEscribe menú para volver.';\nreturn [{ json: { ...ctx, autor: 'bot', guardar_contenido: false, wa: { tipo: 'texto', texto } } }];"
+      },
+      "id": "64325161-c3f1-485d-9554-c16393ef05ef",
+      "name": "Armar: Pedido registrado",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2224,
+        1760
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "u1U4Iam9WNRMZuo5",
+          "cachedResultName": "SUB-01 Enviar Telegram",
+          "cachedResultUrl": "/workflow/u1U4Iam9WNRMZuo5"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}",
+            "wa": "={{ $json.wa }}",
+            "autor": "={{ $json.autor }}",
+            "guardar_contenido": "={{ $json.guardar_contenido }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "wa",
+              "displayName": "wa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "autor",
+              "displayName": "autor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "guardar_contenido",
+              "displayName": "guardar_contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "ea211687-0a40-417a-b660-57334ade36fc",
+      "name": "Enviar: Pedido registrado",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2448,
+        1760
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $('Contexto de pedido').first().json;\nreturn [{ json: { ...ctx, autor: 'bot', guardar_contenido: false, wa: { tipo: 'botones', texto: 'No pude registrar tu pedido por un problema técnico. Tu carrito sigue guardado. ¿Quieres hablar con una persona?', botones: [{ id: 'OP_PERSONA', titulo: 'Hablar con persona' }, { id: 'MENU', titulo: 'Menú principal' }] } } }];"
+      },
+      "id": "5d98ebe8-1523-43d9-b7c0-2479d0bc3d47",
+      "name": "Armar: Pedido no creado",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2336,
+        1824
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "u1U4Iam9WNRMZuo5",
+          "cachedResultName": "SUB-01 Enviar Telegram",
+          "cachedResultUrl": "/workflow/u1U4Iam9WNRMZuo5"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}",
+            "wa": "={{ $json.wa }}",
+            "autor": "={{ $json.autor }}",
+            "guardar_contenido": "={{ $json.guardar_contenido }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "wa",
+              "displayName": "wa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "autor",
+              "displayName": "autor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "guardar_contenido",
+              "displayName": "guardar_contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "12257df9-1fa3-4c49-828e-b440266ee71f",
+      "name": "Enviar: Pedido no creado",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2864,
+        1824
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $('Contexto de pedido').first().json;\nreturn [{ json: { ...ctx, autor: 'bot', guardar_contenido: false, wa: { tipo: 'botones', texto: 'Elige un método de pago:', botones: [{ id: 'PAGO_EF', titulo: 'Efectivo' }, { id: 'PAGO_TR', titulo: 'Transferencia' }] } } }];"
+      },
+      "id": "e770c7cd-1509-490b-8618-81f705e9f5e9",
+      "name": "Armar: Reelegir pago",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1808,
+        1440
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "u1U4Iam9WNRMZuo5",
+          "cachedResultName": "SUB-01 Enviar Telegram",
+          "cachedResultUrl": "/workflow/u1U4Iam9WNRMZuo5"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}",
+            "wa": "={{ $json.wa }}",
+            "autor": "={{ $json.autor }}",
+            "guardar_contenido": "={{ $json.guardar_contenido }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "wa",
+              "displayName": "wa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "autor",
+              "displayName": "autor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "guardar_contenido",
+              "displayName": "guardar_contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "da49f418-d2c9-4ad7-bf76-a7d45b304f2f",
+      "name": "Enviar: Reelegir pago",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2336,
+        1440
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "decision0",
+                    "leftValue": "={{ $json.mensaje.texto===\"PED_OK\" }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "confirmar"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "decision1",
+                    "leftValue": "={{ $json.mensaje.texto===\"PED_MOD\" }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "modificar"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "decision2",
+                    "leftValue": "={{ $json.mensaje.texto===\"PED_CANC\" }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "cancelar"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "otro"
+        }
+      },
+      "id": "ba76a237-1db1-48ce-9609-f02305570e52",
+      "name": "Decisión del cliente",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        896,
+        1984
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/rpc/set_subestado",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({p_comercio_id:$json.comercio.id,p_wa_id:$json.mensaje.wa_id,p_subestado:'items'}) }}",
+        "options": {}
+      },
+      "id": "614bde63-6642-4fce-9b89-6a50e64e2389",
+      "name": "Volver a ítems",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1168,
+        2048
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "GHBSL4NZxzJsUKti",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $('Contexto de pedido').first().json;\nreturn [{ json: { ...ctx, autor: 'bot', guardar_contenido: false, wa: { tipo: 'texto', texto: 'Escribe el producto que quieres agregar o escribe menú para empezar de nuevo.' } } }];"
+      },
+      "id": "8899923f-d1e7-4528-98d1-c540b2ba4ac3",
+      "name": "Armar: Modificar pedido",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1392,
+        2048
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "u1U4Iam9WNRMZuo5",
+          "cachedResultName": "SUB-01 Enviar Telegram",
+          "cachedResultUrl": "/workflow/u1U4Iam9WNRMZuo5"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}",
+            "wa": "={{ $json.wa }}",
+            "autor": "={{ $json.autor }}",
+            "guardar_contenido": "={{ $json.guardar_contenido }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "wa",
+              "displayName": "wa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "autor",
+              "displayName": "autor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "guardar_contenido",
+              "displayName": "guardar_contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "c57a0fe9-804f-4b7d-a007-abea7c4b0cf9",
+      "name": "Enviar: Modificar pedido",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1616,
+        2048
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/rpc/descartar_carrito",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({p_comercio_id:$json.comercio.id,p_wa_id:$json.mensaje.wa_id}) }}",
+        "options": {}
+      },
+      "id": "6e60ab8c-eb6e-4050-805f-e23fbaa6fe77",
+      "name": "Descartar carrito",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1168,
+        2240
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "GHBSL4NZxzJsUKti",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $('Contexto de pedido').first().json;\nreturn [{ json: { ...ctx, autor: 'bot', guardar_contenido: false, wa: { tipo: 'texto', texto: 'Listo, descarté tu pedido. Escribe menú cuando quieras.' } } }];"
+      },
+      "id": "5c54b19a-ee91-44d6-b53c-e2786c0d6caf",
+      "name": "Armar: Pedido descartado",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1392,
+        2240
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "u1U4Iam9WNRMZuo5",
+          "cachedResultName": "SUB-01 Enviar Telegram",
+          "cachedResultUrl": "/workflow/u1U4Iam9WNRMZuo5"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}",
+            "wa": "={{ $json.wa }}",
+            "autor": "={{ $json.autor }}",
+            "guardar_contenido": "={{ $json.guardar_contenido }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "wa",
+              "displayName": "wa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "autor",
+              "displayName": "autor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "guardar_contenido",
+              "displayName": "guardar_contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "5fd77089-199d-41eb-862e-6c5eafeafc6b",
+      "name": "Enviar: Pedido descartado",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1616,
+        2240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $('Contexto de pedido').first().json;\nreturn [{ json: { ...ctx, autor: 'bot', guardar_contenido: false, wa: { tipo: 'texto', texto: 'Usa los botones para confirmar, modificar o cancelar.' } } }];"
+      },
+      "id": "dcbb37da-f8f9-41fb-a5b5-1aee5e668586",
+      "name": "Armar: Usar botones",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        2304
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "u1U4Iam9WNRMZuo5",
+          "cachedResultName": "SUB-01 Enviar Telegram",
+          "cachedResultUrl": "/workflow/u1U4Iam9WNRMZuo5"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}",
+            "wa": "={{ $json.wa }}",
+            "autor": "={{ $json.autor }}",
+            "guardar_contenido": "={{ $json.guardar_contenido }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "wa",
+              "displayName": "wa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "autor",
+              "displayName": "autor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "guardar_contenido",
+              "displayName": "guardar_contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "a702e679-4598-43da-babf-1b56c055f895",
+      "name": "Enviar: Usar botones",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1808,
+        2304
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Entrada": {
+      "main": [
+        [
+          {
+            "node": "Cargar carrito",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cargar carrito": {
+      "main": [
+        [
+          {
+            "node": "Contexto de pedido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contexto de pedido": {
+      "main": [
+        [
+          {
+            "node": "Subestado del pedido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Subestado del pedido": {
+      "main": [
+        [
+          {
+            "node": "¿Pulsó continuar?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Validar tipo de entrega",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Capturar dato",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Validar método de pago",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Decisión del cliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Pulsó continuar?": {
+      "main": [
+        [
+          {
+            "node": "Avanzar a entrega",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "¿Inicia pedido?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Avanzar a entrega": {
+      "main": [
+        [
+          {
+            "node": "Armar: Tipo de entrega",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar: Tipo de entrega": {
+      "main": [
+        [
+          {
+            "node": "Enviar: Tipo de entrega",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Inicia pedido?": {
+      "main": [
+        [
+          {
+            "node": "Armar: Qué desea pedir",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Cargar catálogo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar: Qué desea pedir": {
+      "main": [
+        [
+          {
+            "node": "Enviar: Qué desea pedir",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cargar catálogo": {
+      "main": [
+        [
+          {
+            "node": "Preparar IA (ítems)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar IA (ítems)": {
+      "main": [
+        [
+          {
+            "node": "Interpretar con WF-05 (ítems)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Interpretar con WF-05 (ítems)": {
+      "main": [
+        [
+          {
+            "node": "Resolver ítems contra catálogo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolver ítems contra catálogo": {
+      "main": [
+        [
+          {
+            "node": "¿Hay faltantes o no se entendió?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Hay faltantes o no se entendió?": {
+      "main": [
+        [
+          {
+            "node": "Alternativas de la misma categoría",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Guardar ítems en carrito",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Alternativas de la misma categoría": {
+      "main": [
+        [
+          {
+            "node": "Armar: No disponible y alternativas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar: No disponible y alternativas": {
+      "main": [
+        [
+          {
+            "node": "Enviar: No disponible y alternativas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar ítems en carrito": {
+      "main": [
+        [
+          {
+            "node": "Armar: Ítems agregados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar: Ítems agregados": {
+      "main": [
+        [
+          {
+            "node": "Enviar: Ítems agregados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar tipo de entrega": {
+      "main": [
+        [
+          {
+            "node": "¿Entrega válida?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Entrega válida?": {
+      "main": [
+        [
+          {
+            "node": "Guardar entrega",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Armar: Elegir entrega",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar entrega": {
+      "main": [
+        [
+          {
+            "node": "¿Es recogida?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Es recogida?": {
+      "main": [
+        [
+          {
+            "node": "Armar: Recogida, dirección del local",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Armar: Pedir nombre",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar: Recogida, dirección del local": {
+      "main": [
+        [
+          {
+            "node": "Enviar: Recogida, dirección del local",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar: Pedir nombre": {
+      "main": [
+        [
+          {
+            "node": "Enviar: Pedir nombre",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar: Elegir entrega": {
+      "main": [
+        [
+          {
+            "node": "Enviar: Elegir entrega",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Capturar dato": {
+      "main": [
+        [
+          {
+            "node": "Guardar dato del cliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar dato del cliente": {
+      "main": [
+        [
+          {
+            "node": "¿Falta dirección?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Falta dirección?": {
+      "main": [
+        [
+          {
+            "node": "Armar: Pedir dirección",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Armar: Elegir método de pago",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar: Pedir dirección": {
+      "main": [
+        [
+          {
+            "node": "Enviar: Pedir dirección",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar: Elegir método de pago": {
+      "main": [
+        [
+          {
+            "node": "Enviar: Elegir método de pago",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar método de pago": {
+      "main": [
+        [
+          {
+            "node": "¿Pago válido?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Pago válido?": {
+      "main": [
+        [
+          {
+            "node": "Guardar pago",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Armar: Reelegir pago",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar pago": {
+      "main": [
+        [
+          {
+            "node": "Calcular resumen (total en BD)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calcular resumen (total en BD)": {
+      "main": [
+        [
+          {
+            "node": "Crear pedido (idempotente)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear pedido (idempotente)": {
+      "main": [
+        [
+          {
+            "node": "¿Pedido creado?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Pedido creado?": {
+      "main": [
+        [
+          {
+            "node": "Armar: Pedido registrado",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Armar: Pedido no creado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar: Pedido registrado": {
+      "main": [
+        [
+          {
+            "node": "Enviar: Pedido registrado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar: Pedido no creado": {
+      "main": [
+        [
+          {
+            "node": "Enviar: Pedido no creado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar: Reelegir pago": {
+      "main": [
+        [
+          {
+            "node": "Enviar: Reelegir pago",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decisión del cliente": {
+      "main": [
+        [
+          {
+            "node": "Crear pedido (idempotente)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Volver a ítems",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Descartar carrito",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Armar: Usar botones",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Volver a ítems": {
+      "main": [
+        [
+          {
+            "node": "Armar: Modificar pedido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar: Modificar pedido": {
+      "main": [
+        [
+          {
+            "node": "Enviar: Modificar pedido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Descartar carrito": {
+      "main": [
+        [
+          {
+            "node": "Armar: Pedido descartado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar: Pedido descartado": {
+      "main": [
+        [
+          {
+            "node": "Enviar: Pedido descartado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar: Usar botones": {
+      "main": [
+        [
+          {
+            "node": "Enviar: Usar botones",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "5e85a089-3bfa-4725-8a74-a904db798383",
+  "meta": {
+    "instanceId": "4513e4389da9632a75fc05a757b2c03560d5b2931684deab91f507e8053ea587"
+  },
+  "nodeGroups": [
+    {
+      "id": "835a7d00-e26f-4b7a-9e21-8f7cc8e1cba4",
+      "name": "Pedir tipo de entrega",
+      "nodeIds": [
+        "9b9baa36-ce1d-427e-b802-251ef8c73cd7",
+        "223dc084-9c59-406f-81df-fe1c61195205",
+        "7a3c6482-3214-4fa3-bc2d-7ef6b22affd1"
+      ],
+      "description": "Con el cliente listo para continuar, pasa el pedido a entrega y le pregunta domicilio o recogida"
+    },
+    {
+      "id": "166309a1-1769-49fc-9e7f-a29780b593c8",
+      "name": "Leer productos pedidos",
+      "nodeIds": [
+        "4ffd493b-4227-414b-9f96-07a7adca23cf",
+        "b48a5afa-8f99-4b6b-a70e-4b85cb37235b",
+        "732c4ae5-b4ea-46b5-85ef-7dcf04594d01",
+        "0ff25ea5-b2ba-4157-8f03-60727a84db31"
+      ],
+      "description": "Toma el texto del cliente, lo interpreta sin datos personales y lo cruza con el catálogo real del comercio"
+    },
+    {
+      "id": "f28c1cfd-7c53-4e00-8922-8ef72a8cb064",
+      "name": "Ofrecer alternativas",
+      "nodeIds": [
+        "7efab0f1-e97f-4af9-8c8b-e0e14f4b4c41",
+        "c971e7be-5ae5-493b-8870-7dfab577a7e4",
+        "edadac94-2848-4e70-bb9e-24ee63f74edf"
+      ],
+      "description": "Si algo no existe o está agotado, busca opciones de la misma categoría y se las propone al cliente"
+    },
+    {
+      "id": "71973e9c-e011-4107-8374-55d54e0c17f0",
+      "name": "Agregar al carrito",
+      "nodeIds": [
+        "ac3d93bd-0611-4b20-a368-dec0287873e1",
+        "cfcc0a21-2fe5-4bc4-af6a-0e26433bc5cc",
+        "ecffb935-64a7-48f9-a3da-4cafd6004c92"
+      ],
+      "description": "Guarda los productos encontrados en el carrito y confirma qué se agregó, con precios de la base de datos"
+    },
+    {
+      "id": "f3de538e-e5d6-451b-8430-f1294798838e",
+      "name": "Pedir datos de entrega",
+      "nodeIds": [
+        "705fb192-4b3d-4836-adda-4efa3d06ea55",
+        "896362bb-dd7b-41f6-8d21-48a2b3ec946f"
+      ],
+      "description": "Para domicilio, pide el nombre del cliente antes de seguir"
+    },
+    {
+      "id": "da5454f3-519f-480a-8537-76bf97acb065",
+      "name": "Pedir método de pago",
+      "nodeIds": [
+        "d7f2370a-dce6-42fa-8619-0b40ce86092d",
+        "4ae68c6b-d1af-4124-bf12-5730dd241092"
+      ],
+      "description": "Con nombre y dirección completos, pregunta si paga en efectivo o por transferencia"
+    },
+    {
+      "id": "8fb020fa-65f7-481b-9820-56bedbee20dc",
+      "name": "Guardar método de pago",
+      "nodeIds": [
+        "2faf0e46-ddbc-4493-887d-1023addb6fe9",
+        "cea85713-29f8-4535-93f9-d0b086ee642e"
+      ],
+      "description": "Registra cómo paga el cliente y calcula el total final del carrito en la base de datos"
+    },
+    {
+      "id": "bddc10d7-2b0c-4b8e-abc4-5ac28d8130df",
+      "name": "Registrar pedido",
+      "nodeIds": [
+        "64325161-c3f1-485d-9554-c16393ef05ef",
+        "ea211687-0a40-417a-b660-57334ade36fc"
+      ],
+      "description": "Cuando el pedido se creó, informa número y total al cliente"
+    },
+    {
+      "id": "6be5e1f4-406e-4ca9-8b61-c270bafb19fb",
+      "name": "Reiniciar para modificar",
+      "nodeIds": [
+        "614bde63-6642-4fce-9b89-6a50e64e2389",
+        "8899923f-d1e7-4528-98d1-c540b2ba4ac3",
+        "c57a0fe9-804f-4b7d-a007-abea7c4b0cf9"
+      ],
+      "description": "Devuelve el carrito al paso de productos para que el cliente cambie su pedido"
+    },
+    {
+      "id": "9f597de4-a39f-4cea-86c7-885061cdb3e8",
+      "name": "Descartar pedido",
+      "nodeIds": [
+        "6e60ab8c-eb6e-4050-805f-e23fbaa6fe77",
+        "5c54b19a-ee91-44d6-b53c-e2786c0d6caf",
+        "5fd77089-199d-41eb-862e-6c5eafeafc6b"
+      ],
+      "description": "Elimina el carrito y avisa al cliente que el pedido fue descartado"
+    }
+  ],
+  "id": "BU8DLJQDWmsxoJpy",
+  "tags": []
+}

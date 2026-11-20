@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300" role="img" aria-labelledby="t">
+<title id="t">Catálogo vacío</title>
+<ellipse cx="200" cy="158" rx="150" ry="112" fill="#E8F4F0"/>
+<circle cx="62" cy="62" r="9" fill="#F4A623"/>
+<circle cx="346" cy="246" r="7" fill="#2D8C7A"/>
+<circle cx="338" cy="70" r="4" fill="#2D8C7A"/>
+<circle cx="72" cy="232" r="4" fill="#F4A623"/>
+<ellipse cx="200" cy="262" rx="92" ry="8" fill="#1A3A4A" opacity="0.08"/>
+<g fill="none" stroke="#1A3A4A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+
+<path d="M120 52 V250 M280 52 V250" stroke-width="5"/>
+<path d="M104 118 H296 M104 184 H296 M104 250 H296" stroke-width="6"/>
+<rect x="138" y="72" width="52" height="40" rx="6" fill="none" stroke="#2D8C7A" stroke-dasharray="6 9" stroke-width="4"/>
+<rect x="210" y="72" width="52" height="40" rx="6" fill="none" stroke="#2D8C7A" stroke-dasharray="6 9" stroke-width="4"/>
+<rect x="138" y="138" width="52" height="40" rx="6" fill="none" stroke="#2D8C7A" stroke-dasharray="6 9" stroke-width="4"/>
+<rect x="210" y="138" width="52" height="40" rx="6" fill="#F9F6F1"/>
+<g stroke="none"><circle cx="236" cy="158" r="14" fill="#F4A623"/></g>
+<path d="M236 151 V165 M229 158 H243" stroke="#1A3A4A" stroke-width="4.5"/>
+
+</g>
+</svg>

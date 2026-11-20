@@ -20,7 +20,6 @@ tmp/
 supabase/.temp/
 supabase/.branches/
 supabase/seed.berakah.local.sql
-supabase/backups/
 
 # Operating system files
 .DS_Store

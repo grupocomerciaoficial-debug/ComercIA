@@ -1,0 +1,604 @@
+{
+  "name": "WF-09 Notificaciones de estado",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "estado-pedido",
+        "options": {}
+      },
+      "id": "967bc886-0112-4013-90da-8658ff164944",
+      "name": "Webhook Database (historial_estados)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        384
+      ],
+      "webhookId": "1768f200-6834-4033-beeb-f4419874079b"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "s1",
+              "name": "secreto_esperado",
+              "value": "m3G>+;64G,MMQ)$%i)WCeA->WMuaO{2S",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "e672eb30-7b8f-4517-a083-75eec7c822ff",
+      "name": "Configuración secreto",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "sv1",
+              "leftValue": "={{ $json.headers['x-webhook-secret'] === $json.secreto_esperado }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "1a6b98a8-b029-4439-8346-1d26bafd3870",
+      "name": "¿Secreto válido?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        448,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j=$input.first().json; return [{json:{historial_id:j.body?.record?.id??j.historial_id}}];"
+      },
+      "id": "b7c83945-af72-447b-8cbc-00b573d99516",
+      "name": "Normalizar entrada",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/rpc/datos_notificacion",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({p_historial_id:$json.historial_id}) }}",
+        "options": {}
+      },
+      "id": "e4e74ea2-652f-4799-9196-612204e87594",
+      "name": "Cargar datos de notificación",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1120,
+        384
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "GHBSL4NZxzJsUKti",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const d=$input.first().json; const cfg=$('Normalizar entrada').first().json;\nif(!d.pedido||!d.comercio||!d.cliente){return [{json:{historial_id:cfg.historial_id,avisar:false,motivo:'sin_datos'}}];}\nconst e=String(d.pedido.estado_nuevo||'').toLowerCase(); const modo=String(d.comercio.modo_seguimiento||'').toLowerCase();\nlet avisar=false,texto='',plantilla=null;\nif(e==='confirmado'){avisar=true;texto='Tu pedido #'+d.pedido.numero+' fue confirmado.\\n'+d.pedido.resumen+'\\nEntrega: '+d.pedido.entrega_detalle+'\\nTiempo estimado: '+d.comercio.tiempo_preparacion;plantilla='pedido_confirmado';}\nelse if(e==='cancelado'){avisar=true;texto='Tu pedido #'+d.pedido.numero+' fue cancelado.'+(d.pedido.motivo?' Motivo: '+d.pedido.motivo:'');plantilla='pedido_cancelado';}\nelse if(e==='procesado'&&modo==='completo'){avisar=true;texto='Tu pedido #'+d.pedido.numero+' está en proceso.';plantilla='pedido_procesado';}\nreturn [{json:{...d,historial_id:cfg.historial_id,avisar,texto,plantilla,tiene_chat:!!d.cliente.wa_id}}];"
+      },
+      "id": "c1b3cee0-dac4-4ab7-8f1a-4bee8e7329d3",
+      "name": "Decidir aviso",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1344,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "da1",
+              "leftValue": "={{ $json.avisar === true }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "a183fe03-ba8a-4de1-8a5d-884534b0c801",
+      "name": "¿Debe avisar?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1568,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "tc1",
+              "leftValue": "={{ $json.tiene_chat === true }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "0702c6ac-eacc-4d44-8f89-778a0413878f",
+      "name": "¿Tiene chat_id?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1792,
+        336
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const c=$input.first().json;\nreturn [{json:{historial_id:c.historial_id,comercio:c.comercio,mensaje:{wa_id:c.cliente.wa_id},wa:{tipo:'texto',texto:c.texto}}}];"
+      },
+      "id": "faa7660a-d886-4db5-a6d5-cb1d632c749b",
+      "name": "Armar: Aviso",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2016,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "u1U4Iam9WNRMZuo5",
+          "cachedResultName": "SUB-01 Enviar Telegram",
+          "cachedResultUrl": "/workflow/u1U4Iam9WNRMZuo5"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}",
+            "wa": "={{ $json.wa }}",
+            "autor": "bot",
+            "guardar_contenido": true
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "wa",
+              "displayName": "wa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "autor",
+              "displayName": "autor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "guardar_contenido",
+              "displayName": "guardar_contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "a8c2a2f9-58d5-473a-912c-5b123097913e",
+      "name": "Enviar: Aviso",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2240,
+        96
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/rpc/marcar_aviso",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({p_historial_id:$('Armar: Aviso').first().json.historial_id,p_estado:'enviado'}) }}",
+        "options": {}
+      },
+      "id": "25054316-a0a3-452b-a916-4e1f4bbc1637",
+      "name": "Marcar aviso enviado",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2464,
+        0
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "GHBSL4NZxzJsUKti",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/rpc/marcar_aviso",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({p_historial_id:$('Armar: Aviso').first().json.historial_id,p_estado:'no_enviado'}) }}",
+        "options": {}
+      },
+      "id": "c9f0a178-7b33-4b78-afcf-ec344323f019",
+      "name": "Marcar fallo de envío",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2464,
+        192
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "GHBSL4NZxzJsUKti",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "errorMessage": "No se pudo enviar el aviso de estado por SUB-01 . Marcado como no enviado para reintento."
+      },
+      "id": "7251cf76-36fe-43a5-97b0-52529a8fdcf5",
+      "name": "Error: falló envío",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        2688,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/rpc/marcar_aviso",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({p_historial_id:$json.historial_id,p_estado:'no_enviado'}) }}",
+        "options": {}
+      },
+      "id": "b28ba957-ae5c-4adc-857b-3a3d58fcc54d",
+      "name": "Marcar aviso no enviado",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2240,
+        672
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "GHBSL4NZxzJsUKti",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "2647fe0f-cbd2-4918-854b-f984d59c7918",
+      "name": "Sin aviso (modo básico o sin datos)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1792,
+        480
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "31353316-fa35-4a16-862e-f2c970e3a1f6",
+      "name": "Descartar: secreto inválido",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        672,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "historial_id"
+            }
+          ]
+        }
+      },
+      "id": "376c0f61-a63e-4c2c-87a7-48c23da81178",
+      "name": "Entrada (reintento)",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        624
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook Database (historial_estados)": {
+      "main": [
+        [
+          {
+            "node": "Configuración secreto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configuración secreto": {
+      "main": [
+        [
+          {
+            "node": "¿Secreto válido?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Secreto válido?": {
+      "main": [
+        [
+          {
+            "node": "Normalizar entrada",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Descartar: secreto inválido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizar entrada": {
+      "main": [
+        [
+          {
+            "node": "Cargar datos de notificación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cargar datos de notificación": {
+      "main": [
+        [
+          {
+            "node": "Decidir aviso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decidir aviso": {
+      "main": [
+        [
+          {
+            "node": "¿Debe avisar?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Debe avisar?": {
+      "main": [
+        [
+          {
+            "node": "¿Tiene chat_id?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Sin aviso (modo básico o sin datos)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Tiene chat_id?": {
+      "main": [
+        [
+          {
+            "node": "Armar: Aviso",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Marcar aviso no enviado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar: Aviso": {
+      "main": [
+        [
+          {
+            "node": "Enviar: Aviso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar: Aviso": {
+      "main": [
+        [
+          {
+            "node": "Marcar aviso enviado",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Marcar fallo de envío",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marcar fallo de envío": {
+      "main": [
+        [
+          {
+            "node": "Error: falló envío",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Entrada (reintento)": {
+      "main": [
+        [
+          {
+            "node": "Normalizar entrada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "08af1b16-9747-4ca5-92d9-b0e38658722f",
+  "meta": {
+    "instanceId": "4513e4389da9632a75fc05a757b2c03560d5b2931684deab91f507e8053ea587"
+  },
+  "nodeGroups": [],
+  "id": "RJtWyGY2A1GrLzyh",
+  "tags": []
+}

@@ -1,0 +1,1076 @@
+{
+  "name": "SUB-01 Enviar Telegram",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "comercio",
+              "type": "object"
+            },
+            {
+              "name": "mensaje",
+              "type": "object"
+            },
+            {
+              "name": "wa",
+              "type": "object"
+            },
+            {
+              "name": "autor"
+            },
+            {
+              "name": "guardar_contenido",
+              "type": "boolean"
+            }
+          ]
+        }
+      },
+      "id": "9a18dc40-bfbc-40ce-8ee4-5886bf213930",
+      "name": "Entrada",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $input.first().json;\nconst w = d.wa || {};\nconst chat = d.mensaje && d.mensaje.wa_id;\nconst fail = (m) => [{ json: { ...d, tipo_invalido: true, error_envio: m } }];\nif (!chat) return fail('sin chat_id de Telegram');\nlet text = w.texto ? String(w.texto) : '';\nlet rows = [];\nif (w.tipo === 'texto') {\n} else if (w.tipo === 'botones') {\n  rows = (w.botones || []).map(b => [{ text: String(b.titulo), callback_data: String(b.id).slice(0, 64) }]);\n} else if (w.tipo === 'lista') {\n  rows = (w.filas || []).map(f => [{ text: String(f.titulo), callback_data: String(f.id).slice(0, 64) }]);\n} else if (w.tipo === 'plantilla') {\n  if (!text && w.plantilla) text = String(w.plantilla) + (w.params ? ': ' + w.params.map(String).join(' ') : '');\n} else {\n  return fail('wa.tipo desconocido: ' + w.tipo);\n}\nif (!text) return fail('sin texto para enviar');\ntext = text.slice(0, 4096);\nconst payload = { chat_id: String(chat), text };\nif (rows.length) payload.reply_markup = { inline_keyboard: rows.map(r => [{ text: r[0].text, callback_data: r[0].callback_data }]) };\nreturn [{ json: { ...d, tipo_invalido: false, payload } }];"
+      },
+      "id": "5f97bdd3-2eca-4a3e-9609-e1dab86480e4",
+      "name": "Armar payload Telegram",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "tipo-valido",
+              "leftValue": "={{ $json.tipo_invalido }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "a084c1f7-12c5-48de-97a2-5af084364f5c",
+      "name": "¿Tipo de mensaje válido?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        672,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ (($json.payload.reply_markup || {}).inline_keyboard || []).length }}",
+                    "rightValue": 0,
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "0 botones"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ (($json.payload.reply_markup || {}).inline_keyboard || []).length }}",
+                    "rightValue": 1,
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "1 botones"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ (($json.payload.reply_markup || {}).inline_keyboard || []).length }}",
+                    "rightValue": 2,
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "2 botones"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ (($json.payload.reply_markup || {}).inline_keyboard || []).length }}",
+                    "rightValue": 3,
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "3 botones"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ (($json.payload.reply_markup || {}).inline_keyboard || []).length }}",
+                    "rightValue": 4,
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "4 botones"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ (($json.payload.reply_markup || {}).inline_keyboard || []).length }}",
+                    "rightValue": 5,
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "5 botones"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "5"
+        }
+      },
+      "id": "9ddd895f-5446-4bd1-b8d1-d53a554e2821",
+      "name": "¿Cuántos botones?",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        944,
+        544
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.payload.chat_id }}",
+        "text": "={{ String($json.payload.text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "87f8e82a-fa1d-41a7-a210-667237bfeb9c",
+      "name": "Enviar por Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1200,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 1500,
+      "webhookId": "22784c8b-e2a7-47ae-a50e-02b4a6c39f5e",
+      "credentials": {
+        "telegramApi": {
+          "id": "Qq0PI3JTZDt8EjsR",
+          "name": "Telegram account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "envio-ok",
+              "leftValue": "={{ $json.result && $json.result.message_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "0effcef8-1e09-4fa0-aeaf-1e7410aeebc8",
+      "name": "¿Envío correcto?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1424,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.payload.chat_id }}",
+        "text": "={{ String($json.payload.text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.payload.reply_markup.inline_keyboard[0][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.payload.reply_markup.inline_keyboard[0][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "4985a3d2-43bd-4525-8941-86c1e42e59e4",
+      "name": "Enviar por Telegram (1 botón)",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1200,
+        320
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 1500,
+      "webhookId": "79c0364f-72cf-472a-b405-64ab96bd9cf7",
+      "credentials": {
+        "telegramApi": {
+          "id": "Qq0PI3JTZDt8EjsR",
+          "name": "Telegram account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.payload.chat_id }}",
+        "text": "={{ String($json.payload.text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.payload.reply_markup.inline_keyboard[0][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.payload.reply_markup.inline_keyboard[0][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.payload.reply_markup.inline_keyboard[1][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.payload.reply_markup.inline_keyboard[1][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "94c98cdb-a28f-44e8-bb4b-e23075e97826",
+      "name": "Enviar por Telegram (2 botones)",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1200,
+        512
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 1500,
+      "webhookId": "1f382393-08ba-428a-afbe-8becc3a5f00d",
+      "credentials": {
+        "telegramApi": {
+          "id": "Qq0PI3JTZDt8EjsR",
+          "name": "Telegram account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.payload.chat_id }}",
+        "text": "={{ String($json.payload.text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.payload.reply_markup.inline_keyboard[0][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.payload.reply_markup.inline_keyboard[0][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.payload.reply_markup.inline_keyboard[1][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.payload.reply_markup.inline_keyboard[1][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.payload.reply_markup.inline_keyboard[2][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.payload.reply_markup.inline_keyboard[2][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "9324a6d3-330d-41de-8857-e4de3c71b419",
+      "name": "Enviar por Telegram (3 botones)",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1200,
+        704
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 1500,
+      "webhookId": "6d64801e-e9f1-4c56-9847-d7caa83e5eb7",
+      "credentials": {
+        "telegramApi": {
+          "id": "Qq0PI3JTZDt8EjsR",
+          "name": "Telegram account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.payload.chat_id }}",
+        "text": "={{ String($json.payload.text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.payload.reply_markup.inline_keyboard[0][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.payload.reply_markup.inline_keyboard[0][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.payload.reply_markup.inline_keyboard[1][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.payload.reply_markup.inline_keyboard[1][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.payload.reply_markup.inline_keyboard[2][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.payload.reply_markup.inline_keyboard[2][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.payload.reply_markup.inline_keyboard[3][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.payload.reply_markup.inline_keyboard[3][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "2ded1790-999b-41c6-aaf9-3d621b9102d5",
+      "name": "Enviar por Telegram (4 botones)",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1200,
+        896
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 1500,
+      "webhookId": "e57c3d81-4dca-4ab2-a673-366ab9e8ddac",
+      "credentials": {
+        "telegramApi": {
+          "id": "Qq0PI3JTZDt8EjsR",
+          "name": "Telegram account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.payload.chat_id }}",
+        "text": "={{ String($json.payload.text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.payload.reply_markup.inline_keyboard[0][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.payload.reply_markup.inline_keyboard[0][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.payload.reply_markup.inline_keyboard[1][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.payload.reply_markup.inline_keyboard[1][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.payload.reply_markup.inline_keyboard[2][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.payload.reply_markup.inline_keyboard[2][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.payload.reply_markup.inline_keyboard[3][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.payload.reply_markup.inline_keyboard[3][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.payload.reply_markup.inline_keyboard[4][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.payload.reply_markup.inline_keyboard[4][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "08b945ca-d006-4e7b-aaab-f1e313a0ac05",
+      "name": "Enviar por Telegram (5 botones)",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1200,
+        1088
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 1500,
+      "webhookId": "98cf6a28-e177-4333-bcc4-9edf511fac7b",
+      "credentials": {
+        "telegramApi": {
+          "id": "Qq0PI3JTZDt8EjsR",
+          "name": "Telegram account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "t-1",
+              "name": "enviado",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "t-2",
+              "name": "wa_message_id",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "t-3",
+              "name": "error",
+              "value": "={{ $json.error_envio }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "dc3c3a75-4c1e-43d1-a0e7-9891a17958f5",
+      "name": "Resultado: tipo inválido",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        896,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $('Armar payload Telegram').first().json;\nconst r = $input.first().json;\nconst guardar = d.guardar_contenido === true;\nreturn [{ json: {\n  p_comercio_id: d.comercio.id,\n  p_wa_id: d.mensaje.wa_id,\n  p_autor: d.autor || 'bot',\n  p_contenido: guardar ? (d.wa.texto || '') : '',\n  p_wa_message_id: (r.result && r.result.message_id != null) ? String(r.result.message_id) : null\n} }];"
+      },
+      "id": "02cf5d25-4d42-41d9-8107-4c803d63a20f",
+      "name": "Preparar registro",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1504,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/rpc/registrar_mensaje_saliente",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "37a459d2-be94-4c15-a0f8-b75a607ba5ce",
+      "name": "Registrar mensaje saliente",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1728,
+        32
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Ya4Bdu0DjuhJL6UE",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ok-1",
+              "name": "enviado",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "ok-2",
+              "name": "wa_message_id",
+              "value": "={{ String($(\"Preparar registro\").first().json.p_wa_message_id) }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "70718d5e-1680-4243-9ac3-a7d34d628f73",
+      "name": "Resultado: enviado",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1952,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/eventos_error",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ origen: \"telegram_envio\", detalle: JSON.stringify($json) }) }}",
+        "options": {}
+      },
+      "id": "2dc8d02d-fa2e-40f5-a849-8b8e823562ee",
+      "name": "Registrar error de envío",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1504,
+        224
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Ya4Bdu0DjuhJL6UE",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f-1",
+              "name": "enviado",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "f-2",
+              "name": "wa_message_id",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "f-3",
+              "name": "error",
+              "value": "fallo_envio_telegram",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ea437de5-fde5-403c-9942-d2d1c14da1c0",
+      "name": "Resultado: falló el envío",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1728,
+        224
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Entrada": {
+      "main": [
+        [
+          {
+            "node": "Armar payload Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar payload Telegram": {
+      "main": [
+        [
+          {
+            "node": "¿Tipo de mensaje válido?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Tipo de mensaje válido?": {
+      "main": [
+        [
+          {
+            "node": "¿Cuántos botones?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Resultado: tipo inválido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Cuántos botones?": {
+      "main": [
+        [
+          {
+            "node": "Enviar por Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Enviar por Telegram (1 botón)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Enviar por Telegram (2 botones)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Enviar por Telegram (3 botones)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Enviar por Telegram (4 botones)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Enviar por Telegram (5 botones)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar por Telegram": {
+      "main": [
+        [
+          {
+            "node": "¿Envío correcto?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Envío correcto?": {
+      "main": [
+        [
+          {
+            "node": "Preparar registro",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Registrar error de envío",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar por Telegram (1 botón)": {
+      "main": [
+        [
+          {
+            "node": "¿Envío correcto?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar por Telegram (2 botones)": {
+      "main": [
+        [
+          {
+            "node": "¿Envío correcto?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar por Telegram (3 botones)": {
+      "main": [
+        [
+          {
+            "node": "¿Envío correcto?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar por Telegram (4 botones)": {
+      "main": [
+        [
+          {
+            "node": "¿Envío correcto?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar por Telegram (5 botones)": {
+      "main": [
+        [
+          {
+            "node": "¿Envío correcto?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar registro": {
+      "main": [
+        [
+          {
+            "node": "Registrar mensaje saliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar mensaje saliente": {
+      "main": [
+        [
+          {
+            "node": "Resultado: enviado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar error de envío": {
+      "main": [
+        [
+          {
+            "node": "Resultado: falló el envío",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "08c7c463-d703-4e2a-a07a-460a2df6b8bb",
+  "meta": {
+    "instanceId": "0377e644cf2a884d8c8dbd595763a484cda55998a03ba1ceb5fc410f8bedb2bf"
+  },
+  "nodeGroups": [
+    {
+      "id": "4b1225fb-9ca5-49dd-8e16-b9c8e087d97b",
+      "name": "Enviar mensaje",
+      "nodeIds": [
+        "9ddd895f-5446-4bd1-b8d1-d53a554e2821",
+        "87f8e82a-fa1d-41a7-a210-667237bfeb9c",
+        "4985a3d2-43bd-4525-8941-86c1e42e59e4",
+        "94c98cdb-a28f-44e8-bb4b-e23075e97826",
+        "9324a6d3-330d-41de-8857-e4de3c71b419",
+        "2ded1790-999b-41c6-aaf9-3d621b9102d5",
+        "08b945ca-d006-4e7b-aaab-f1e313a0ac05",
+        "0effcef8-1e09-4fa0-aeaf-1e7410aeebc8"
+      ],
+      "description": "Envía el texto al chat con sus botones (hasta 5) usando la credencial del bot y comprueba que Telegram lo aceptó"
+    },
+    {
+      "id": "2f82aa49-29d7-4e1d-8267-f8b61bf18dbe",
+      "name": "Registrar envío",
+      "nodeIds": [
+        "02cf5d25-4d42-41d9-8107-4c803d63a20f",
+        "37a459d2-be94-4c15-a0f8-b75a607ba5ce",
+        "70718d5e-1680-4243-9ac3-a7d34d628f73"
+      ],
+      "description": "Tras enviar, guarda el mensaje saliente (sin contenido por defecto) y devuelve enviado: true"
+    },
+    {
+      "id": "c29ab43f-ffa6-48ae-99da-1d6775d11bf9",
+      "name": "Manejar fallo",
+      "nodeIds": [
+        "2dc8d02d-fa2e-40f5-a849-8b8e823562ee",
+        "ea437de5-fde5-403c-9942-d2d1c14da1c0"
+      ],
+      "description": "Si Telegram rechaza el envío, registra el error y devuelve enviado: false al llamador"
+    }
+  ],
+  "id": "QZEDcRJvlb9dfNCd",
+  "tags": []
+}

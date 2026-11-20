@@ -1,0 +1,1011 @@
+{
+  "name": "WF-02 Control de autorización",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "comercio",
+              "type": "object"
+            },
+            {
+              "name": "mensaje",
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "id": "012d4bdf-7b34-4706-8eb0-10885ab63e5f",
+      "name": "Entrada",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cfg1",
+              "name": "politica_url",
+              "value": "https://comercia-web-orpin.vercel.app/privacidad",
+              "type": "string"
+            },
+            {
+              "id": "cfg2",
+              "name": "aviso_version",
+              "value": "https://unisimonedu-my.sharepoint.com/:u:/g/personal/s_jurgensen_unisimon_edu_co/IQC0L1yoYrwqSIxX6JL_W92LAc5URBiuRRu6cgewe4JrLOw?e=DySqpc",
+              "type": "string"
+            },
+            {
+              "id": "cfg3",
+              "name": "repetir_aviso_horas",
+              "value": 24,
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "3fc7ce93-90f6-4891-b782-81379247a15b",
+      "name": "Configuración",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/rpc/obtener_autorizacion",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({p_comercio_id:$('Configuración').first().json.comercio.id,p_wa_id:$('Configuración').first().json.mensaje.wa_id}) }}",
+        "options": {}
+      },
+      "id": "f6fca8df-946e-4ec2-adec-9ea7e840886b",
+      "name": "Consultar autorización",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        496,
+        384
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Ya4Bdu0DjuhJL6UE",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx=$('Configuración').first().json; const a=$input.first().json||{};\nconst t=ctx.mensaje.texto; const horas=a.ultimo_aviso?(Date.now()-new Date(a.ultimo_aviso))/36e5:999;\nlet accion='sin_decision';\nif(ctx.mensaje.interactivo&&t==='ACEPTO')accion='boton_acepto';\nelse if(ctx.mensaje.interactivo&&t==='NO_ACEPTO')accion='boton_no_acepto';\nelse if(a.decision==='acepto'&&a.version_vigente===true)accion='ya_acepto';\nelse if(a.decision==='no_acepto')accion=horas>=Number(ctx.repetir_aviso_horas||24)?'repetir_aviso':'silencio';\nreturn [{json:{...ctx,accion,autorizacion:a}}];"
+      },
+      "id": "3da60dd6-f547-461a-8296-071fcce91528",
+      "name": "Clasificar acción",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "a0",
+                    "leftValue": "={{ $json.accion===\"boton_acepto\" }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "boton_acepto"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "a1",
+                    "leftValue": "={{ $json.accion===\"boton_no_acepto\" }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "boton_no_acepto"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "a2",
+                    "leftValue": "={{ $json.accion===\"ya_acepto\" }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ya_acepto"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "a3",
+                    "leftValue": "={{ $json.accion===\"sin_decision\" }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "sin_decision"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "a4",
+                    "leftValue": "={{ $json.accion===\"repetir_aviso\" }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "repetir_aviso"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "a5",
+                    "leftValue": "={{ $json.accion===\"silencio\" }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "silencio"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "otro"
+        }
+      },
+      "id": "8f4a9e1c-680c-4efa-8de9-227cb9562a1a",
+      "name": "Ruta de autorización",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        976,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/rpc/registrar_autorizacion",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({p_comercio_id:$('Configuración').first().json.comercio.id,p_wa_id:$('Configuración').first().json.mensaje.wa_id,p_decision:'acepto',p_version:$('Configuración').first().json.aviso_version}) }}",
+        "options": {}
+      },
+      "id": "c2ece8dc-14c5-4e53-bb76-373e017b2080",
+      "name": "Registrar aceptación",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1248,
+        0
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Ya4Bdu0DjuhJL6UE",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx=$('Configuración').first().json;\nreturn [{json:{comercio:ctx.comercio,mensaje:ctx.mensaje,guardar_contenido:true,wa:{tipo:'lista',texto:'Hola, soy el asistente virtual con IA del comercio. ¿Qué deseas hacer?',boton:'Ver opciones',filas:[{id:'OP_PEDIDO',titulo:'1. Hacer un pedido'},{id:'OP_CATALOGO',titulo:'2. Ver catálogo'},{id:'OP_ESTADO',titulo:'3. Estado de pedido'},{id:'OP_FAQ',titulo:'4. Preguntas frecuentes'},{id:'OP_PERSONA',titulo:'5. Hablar con persona'}]}}}];"
+      },
+      "id": "4896b22d-042e-483e-911a-953a6b4c2965",
+      "name": "Armar: Menú principal",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1472,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "QZEDcRJvlb9dfNCd",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/QZEDcRJvlb9dfNCd",
+          "cachedResultName": "SUB-01 Enviar Telegram"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}",
+            "wa": "={{ $json.wa }}",
+            "autor": "bot",
+            "guardar_contenido": "={{ $json.guardar_contenido === true }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "wa",
+              "displayName": "wa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "autor",
+              "displayName": "autor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "guardar_contenido",
+              "displayName": "guardar_contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "e19f9ca9-5456-4b7c-bd96-0c50ff6ce93d",
+      "name": "Enviar: Menú principal",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1696,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/rpc/registrar_autorizacion",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({p_comercio_id:$('Configuración').first().json.comercio.id,p_wa_id:$('Configuración').first().json.mensaje.wa_id,p_decision:'no_acepto',p_version:$('Configuración').first().json.aviso_version}) }}",
+        "options": {}
+      },
+      "id": "527de50d-f6a5-4804-9e60-f8d975d9eb5b",
+      "name": "Registrar rechazo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1248,
+        192
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Ya4Bdu0DjuhJL6UE",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx=$('Configuración').first().json;\nreturn [{json:{comercio:ctx.comercio,mensaje:ctx.mensaje,guardar_contenido:false,wa:{tipo:'texto',texto:'No puedo continuar atendiéndote porque no aceptaste la política de tratamiento de datos. Te remito con un asesor humano; la respuesta puede demorar.'}}}];"
+      },
+      "id": "89281c88-14e9-4e47-9ba7-7c7ff7f31cf5",
+      "name": "Armar: Imposible continuar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1472,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "QZEDcRJvlb9dfNCd",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/QZEDcRJvlb9dfNCd",
+          "cachedResultName": "SUB-01 Enviar Telegram"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}",
+            "wa": "={{ $json.wa }}",
+            "autor": "bot",
+            "guardar_contenido": "={{ $json.guardar_contenido === true }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "wa",
+              "displayName": "wa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "autor",
+              "displayName": "autor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "guardar_contenido",
+              "displayName": "guardar_contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "c7a48dc8-6b90-42fa-bcf5-a141258e4222",
+      "name": "Enviar: Imposible continuar",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1696,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx=$('Configuración').first().json; return [{json:{comercio:ctx.comercio,mensaje:ctx.mensaje,motivo:'sin_autorizacion'}}];"
+      },
+      "id": "1f2fd105-b02d-43f5-8f29-f67d9c8318c7",
+      "name": "Contexto: motivo sin autorización",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "D2OxpAClskvQRZ5u",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/D2OxpAClskvQRZ5u",
+          "cachedResultName": "WF-07 Atención humana"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}",
+            "motivo": "={{ $json.motivo }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "motivo",
+              "displayName": "motivo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "8002d522-05a9-471a-9431-070909960fa1",
+      "name": "Derivar a WF-07",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2144,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "G74pCk4CWIpqDEem",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/G74pCk4CWIpqDEem",
+          "cachedResultName": "WF-03 Enrutador por estado"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "a97c4ee7-069f-4528-9290-8f5ab9a7be30",
+      "name": "Ir a WF-03",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1360,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx=$('Configuración').first().json;\nreturn [{json:{comercio:ctx.comercio,mensaje:ctx.mensaje,guardar_contenido:false,wa:{tipo:'botones',texto:'Hola, soy el asistente virtual con IA de '+(ctx.comercio.nombre||'el comercio')+'. Usaré tus datos solo para atender tu pedido. Política de tratamiento: '+ctx.politica_url+'. ¿Aceptas?',botones:[{id:'ACEPTO',titulo:'Acepto'},{id:'NO_ACEPTO',titulo:'No acepto'}]}}}];"
+      },
+      "id": "af706dfc-7c52-45a8-a8a7-1af2ba971850",
+      "name": "Armar: Aviso de privacidad",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1344,
+        624
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "QZEDcRJvlb9dfNCd",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/QZEDcRJvlb9dfNCd",
+          "cachedResultName": "SUB-01 Enviar Telegram"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}",
+            "wa": "={{ $json.wa }}",
+            "autor": "bot",
+            "guardar_contenido": "={{ $json.guardar_contenido === true }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "wa",
+              "displayName": "wa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "autor",
+              "displayName": "autor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "guardar_contenido",
+              "displayName": "guardar_contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "f68adb7d-d693-4890-ace6-2262c1f01f5d",
+      "name": "Enviar: Aviso de privacidad",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1568,
+        624
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/rpc/registrar_aviso_enviado",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({p_comercio_id:$('Configuración').first().json.comercio.id,p_wa_id:$('Configuración').first().json.mensaje.wa_id,p_version:$('Configuración').first().json.aviso_version}) }}",
+        "options": {}
+      },
+      "id": "0e8db6d0-bef8-4e2d-8ad3-27b17e2156dc",
+      "name": "Registrar aviso enviado",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1792,
+        624
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Ya4Bdu0DjuhJL6UE",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "59cbc99b-82d5-45a2-8554-df4ae8d3749f",
+      "name": "Silencio: atención humana pendiente",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1360,
+        880
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Entrada": {
+      "main": [
+        [
+          {
+            "node": "Configuración",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configuración": {
+      "main": [
+        [
+          {
+            "node": "Consultar autorización",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar autorización": {
+      "main": [
+        [
+          {
+            "node": "Clasificar acción",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clasificar acción": {
+      "main": [
+        [
+          {
+            "node": "Ruta de autorización",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ruta de autorización": {
+      "main": [
+        [
+          {
+            "node": "Registrar aceptación",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Registrar rechazo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ir a WF-03",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Armar: Aviso de privacidad",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Armar: Aviso de privacidad",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Silencio: atención humana pendiente",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Armar: Aviso de privacidad",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar aceptación": {
+      "main": [
+        [
+          {
+            "node": "Armar: Menú principal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar: Menú principal": {
+      "main": [
+        [
+          {
+            "node": "Enviar: Menú principal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar rechazo": {
+      "main": [
+        [
+          {
+            "node": "Armar: Imposible continuar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar: Imposible continuar": {
+      "main": [
+        [
+          {
+            "node": "Enviar: Imposible continuar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar: Imposible continuar": {
+      "main": [
+        [
+          {
+            "node": "Contexto: motivo sin autorización",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contexto: motivo sin autorización": {
+      "main": [
+        [
+          {
+            "node": "Derivar a WF-07",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar: Aviso de privacidad": {
+      "main": [
+        [
+          {
+            "node": "Enviar: Aviso de privacidad",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar: Aviso de privacidad": {
+      "main": [
+        [
+          {
+            "node": "Registrar aviso enviado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "e1089863-3fdf-4d0e-90b6-199f944ef4f8",
+  "meta": {
+    "instanceId": "0377e644cf2a884d8c8dbd595763a484cda55998a03ba1ceb5fc410f8bedb2bf"
+  },
+  "nodeGroups": [
+    {
+      "id": "8b4194c0-ecba-4ab3-b389-a3cc4ab3d00f",
+      "name": "Consultar autorización",
+      "nodeIds": [
+        "f6fca8df-946e-4ec2-adec-9ea7e840886b",
+        "3da60dd6-f547-461a-8296-071fcce91528"
+      ],
+      "description": "Recibe el mensaje, lee si el cliente aceptó el tratamiento de datos y decide qué hacer"
+    },
+    {
+      "id": "17aef5d7-04aa-455e-b1a7-64491afd596a",
+      "name": "Dar bienvenida",
+      "nodeIds": [
+        "c2ece8dc-14c5-4e53-bb76-373e017b2080",
+        "4896b22d-042e-483e-911a-953a6b4c2965",
+        "e19f9ca9-5456-4b7c-bd96-0c50ff6ce93d"
+      ],
+      "description": "Si el cliente pulsa Acepto, guarda su aceptación y le envía el menú principal"
+    },
+    {
+      "id": "145dbc8a-ac9a-49b9-9412-f972bdd27178",
+      "name": "Cerrar sin autorización",
+      "nodeIds": [
+        "527de50d-f6a5-4804-9e60-f8d975d9eb5b",
+        "89281c88-14e9-4e47-9ba7-7c7ff7f31cf5",
+        "c7a48dc8-6b90-42fa-bcf5-a141258e4222",
+        "1f2fd105-b02d-43f5-8f29-f67d9c8318c7",
+        "8002d522-05a9-471a-9431-070909960fa1"
+      ],
+      "description": "Si rechaza, guarda el rechazo, le avisa y lo pasa a una persona sin guardar contenido"
+    },
+    {
+      "id": "c81fa544-232d-4ae0-8350-7fb07874cbe5",
+      "name": "Pedir autorización",
+      "nodeIds": [
+        "af706dfc-7c52-45a8-a8a7-1af2ba971850",
+        "f68adb7d-d693-4890-ace6-2262c1f01f5d",
+        "0e8db6d0-bef8-4e2d-8ad3-27b17e2156dc"
+      ],
+      "description": "Envía el aviso de privacidad con botones y registra el envío para no repetirlo antes de 24 h"
+    }
+  ],
+  "id": "V4VnPCbyi9yE0Mhg",
+  "tags": []
+}

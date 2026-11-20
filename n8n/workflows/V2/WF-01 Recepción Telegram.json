@@ -1,0 +1,789 @@
+{
+  "name": "WF-01 Recepción Telegram",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message",
+          "callback_query"
+        ],
+        "additionalFields": {}
+      },
+      "id": "456f6b06-44b4-4039-bd69-5d56fb84d91c",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        0,
+        480
+      ],
+      "webhookId": "9ca303d0-0227-4ad3-9e1f-f4309c0e48bf",
+      "credentials": {
+        "telegramApi": {
+          "id": "Qq0PI3JTZDt8EjsR",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b1",
+              "name": "bot_id",
+              "value": "8918428824",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "7f844f16-9e82-4f49-ae1d-0eb89e3c8cc8",
+      "name": "Configuración bot",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const cb = $json.callback_query;\nconst m = cb ? cb.message : $json.message;\n\nif (!m || !m.chat || m.chat.id === undefined) {\n  return [{ json: { es_mensaje: false } }];\n}\n\nlet tipo = 'otro';\n\nif (cb || m.text) {\n  tipo = 'texto';\n} else {\n  for (const k of ['photo', 'voice', 'audio', 'document', 'video', 'sticker', 'location', 'contact']) {\n    if (m[k]) {\n      tipo = k;\n      break;\n    }\n  }\n}\n\nconst texto = cb ? (cb.data || null) : (m.text || m.caption || null);\nconst botones = (m.reply_markup && m.reply_markup.inline_keyboard || []).flat();\nconst etiqueta = cb\n  ? (botones.find(b => b.callback_data === cb.data)?.text || cb.data)\n  : null;\n\nconst nombres = {\n  photo: 'Imagen recibida',\n  voice: 'Nota de voz recibida',\n  audio: 'Audio recibido',\n  document: 'Documento recibido',\n  video: 'Video recibido',\n  sticker: 'Sticker recibido',\n  location: 'Ubicación compartida',\n  contact: 'Contacto compartido'\n};\n\nconst contenido = cb\n  ? (etiqueta || 'Opción seleccionada: ' + (cb.data || ''))\n  : (m.text || m.caption || nombres[tipo] || 'Mensaje recibido');\n\nreturn [{\n  json: {\n    es_mensaje: true,\n    mensaje: {\n      wa_message_id: cb ? String(cb.id) : String(m.message_id),\n      wa_id: String(m.chat.id),\n      tipo,\n      texto,\n      contenido,\n      interactivo: !!cb,\n      ts: String(m.date || '')\n    },\n    comercio: { phone_number_id: $json.bot_id }\n  }\n}];"
+      },
+      "id": "95a11da2-9473-47a8-96a9-f0b519e0d5dd",
+      "name": "Extraer evento",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "m1",
+              "leftValue": "={{ $json.es_mensaje }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "5915e845-2903-4447-9a16-74b560baca9f",
+      "name": "¿Es mensaje (no estado)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        672,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/v_comercios",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "phone_number_id",
+              "value": "=eq.{{ $json.comercio.phone_number_id }}"
+            },
+            {
+              "name": "limit",
+              "value": "1"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8edd89dc-44d5-48e4-97f8-7d2349cf14fe",
+      "name": "Buscar comercio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        896,
+        288
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Ya4Bdu0DjuhJL6UE",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e1",
+              "leftValue": "={{ !!$json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "40555fe6-c2bb-4d52-bf26-e73409d37d98",
+      "name": "¿Comercio existe?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        288
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "a1",
+              "leftValue": "={{ $json.activo === true }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "0b52863d-18b2-4bc5-8026-3c698b3f1f98",
+      "name": "¿Comercio activo?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1344,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx={...$('Extraer evento').first().json,comercio:$('Buscar comercio').first().json};\nreturn [{json:ctx}];"
+      },
+      "id": "11836f83-c342-4adb-8510-0148fa8c341d",
+      "name": "Armar contexto",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1616,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/rpc/registrar_mensaje_entrante_con_contenido",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({p_comercio_id:$json.comercio.id,p_wa_id:$json.mensaje.wa_id,p_tipo:$json.mensaje.tipo,p_wa_message_id:$json.mensaje.wa_message_id,p_contenido:$json.mensaje.contenido}) }}",
+        "options": {}
+      },
+      "id": "49ba92dc-e5b3-49c8-b94b-8c3c24e4ea41",
+      "name": "Registrar metadatos del mensaje",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1840,
+        224
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Ya4Bdu0DjuhJL6UE",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "n1",
+              "leftValue": "={{ !!$json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "056cea16-0155-41ff-a698-4db414129a9e",
+      "name": "¿Mensaje nuevo?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2064,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const c=$('Armar contexto').first().json; return [{json:{comercio:c.comercio,mensaje:c.mensaje}}];"
+      },
+      "id": "0f0fdc79-5cd6-4af1-8297-1efcc8a6d393",
+      "name": "Reponer contexto",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2096,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "V4VnPCbyi9yE0Mhg",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/V4VnPCbyi9yE0Mhg",
+          "cachedResultName": "WF-02 Control de autorización"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "867e798a-1f38-4429-8662-43bdf0191253",
+      "name": "Ir a WF-02",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2320,
+        0
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "95ddb7cd-a263-406a-9a10-c96d862a0a07",
+      "name": "Descartar: duplicado (idempotencia)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        2096,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx={...$('Extraer evento').first().json,comercio:$('Buscar comercio').first().json};\nreturn [{json:{comercio:ctx.comercio,mensaje:ctx.mensaje,guardar_contenido:false,wa:{tipo:'texto',texto:'El comercio no está disponible por ahora. Intenta más tarde.'}}}];"
+      },
+      "id": "1cf46a1c-7b7b-40a6-992d-2eef8e7264aa",
+      "name": "Armar: No disponible",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1616,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "QZEDcRJvlb9dfNCd",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/QZEDcRJvlb9dfNCd",
+          "cachedResultName": "SUB-01 Enviar Telegram"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}",
+            "wa": "={{ $json.wa }}",
+            "autor": "bot",
+            "guardar_contenido": false
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "wa",
+              "displayName": "wa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "autor",
+              "displayName": "autor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "guardar_contenido",
+              "displayName": "guardar_contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "13cbe7f9-a40a-4ae3-ac18-9b4ddb8201bb",
+      "name": "Enviar: No disponible",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1840,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/eventos_error",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({origen:'wf01',detalle:'comercio_inactivo'}) }}",
+        "options": {}
+      },
+      "id": "6423658b-3927-4f44-a9d1-67e5b9895016",
+      "name": "Registrar evento: comercio inactivo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2064,
+        416
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Ya4Bdu0DjuhJL6UE",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/eventos_error",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({origen:'wf01',detalle:'comercio_desconocido'}) }}",
+        "options": {}
+      },
+      "id": "fc07fd7a-d006-42fb-9d94-d3d6f3aac4cc",
+      "name": "Registrar evento: comercio desconocido",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1344,
+        384
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Ya4Bdu0DjuhJL6UE",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "ea3ff832-2196-42ff-b641-b7322544a5ea",
+      "name": "Descartar: evento de estado",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        896,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "cb1",
+              "leftValue": "={{ !!$json.callback_query }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "29246c99-40e4-45a8-9ef7-41cc62a8de7c",
+      "name": "¿Es botón (callback)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "callback",
+        "queryId": "={{ $json.callback_query.id }}",
+        "additionalFields": {}
+      },
+      "id": "ee405b04-319f-49f6-864d-4fd668ae9219",
+      "name": "Responder callback",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        448,
+        576
+      ],
+      "webhookId": "d1945ee9-4f05-46cb-9224-23035e9e713e",
+      "credentials": {
+        "telegramApi": {
+          "id": "Qq0PI3JTZDt8EjsR",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Configuración bot",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "¿Es botón (callback)?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configuración bot": {
+      "main": [
+        [
+          {
+            "node": "Extraer evento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extraer evento": {
+      "main": [
+        [
+          {
+            "node": "¿Es mensaje (no estado)?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Es mensaje (no estado)?": {
+      "main": [
+        [
+          {
+            "node": "Buscar comercio",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Descartar: evento de estado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar comercio": {
+      "main": [
+        [
+          {
+            "node": "¿Comercio existe?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Comercio existe?": {
+      "main": [
+        [
+          {
+            "node": "¿Comercio activo?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Registrar evento: comercio desconocido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Comercio activo?": {
+      "main": [
+        [
+          {
+            "node": "Armar contexto",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Armar: No disponible",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar contexto": {
+      "main": [
+        [
+          {
+            "node": "Registrar metadatos del mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar metadatos del mensaje": {
+      "main": [
+        [
+          {
+            "node": "¿Mensaje nuevo?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Mensaje nuevo?": {
+      "main": [
+        [
+          {
+            "node": "Reponer contexto",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Descartar: duplicado (idempotencia)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reponer contexto": {
+      "main": [
+        [
+          {
+            "node": "Ir a WF-02",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar: No disponible": {
+      "main": [
+        [
+          {
+            "node": "Enviar: No disponible",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar: No disponible": {
+      "main": [
+        [
+          {
+            "node": "Registrar evento: comercio inactivo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Es botón (callback)?": {
+      "main": [
+        [
+          {
+            "node": "Responder callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "3f40640e-8b89-49f3-978d-0747a711c4a4",
+  "meta": {
+    "instanceId": "0377e644cf2a884d8c8dbd595763a484cda55998a03ba1ceb5fc410f8bedb2bf"
+  },
+  "nodeGroups": [
+    {
+      "id": "7fab842f-8657-472b-b78b-c192fcef338b",
+      "name": "Registrar mensaje",
+      "nodeIds": [
+        "11836f83-c342-4adb-8510-0148fa8c341d",
+        "49ba92dc-e5b3-49c8-b94b-8c3c24e4ea41",
+        "056cea16-0155-41ff-a698-4db414129a9e"
+      ],
+      "description": "Con el comercio activo, guarda los datos del mensaje y detecta si Telegram lo reenvió"
+    },
+    {
+      "id": "bab5ec61-68b8-4dc3-857f-64fedee4989e",
+      "name": "Avisar comercio inactivo",
+      "nodeIds": [
+        "1cf46a1c-7b7b-40a6-992d-2eef8e7264aa",
+        "13cbe7f9-a40a-4ae3-ac18-9b4ddb8201bb",
+        "6423658b-3927-4f44-a9d1-67e5b9895016"
+      ],
+      "description": "Si el comercio está desactivado, avisa al cliente que no hay atención y deja registro"
+    }
+  ],
+  "id": "mtgWw84xDLy55hYH",
+  "tags": []
+}

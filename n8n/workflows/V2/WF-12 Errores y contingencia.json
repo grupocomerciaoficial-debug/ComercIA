@@ -1,0 +1,488 @@
+{
+  "name": "WF-12 Errores y contingencia",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "7fbfd397-a585-4813-a3a1-d5c912524102",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        64,
+        544
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bc9c1889-c956-426c-a957-97b2ed20a114",
+              "name": "workflows_cliente",
+              "value": "={{ [\"WF-01 Recepción Telegram\", \"WF-02 Control de autorización\", \"WF-03 Enrutador por estado\", \"WF-04 Menú y consultas\", \"WF-05 Subflujo de IA\", \"WF-06 Construcción del pedido\", \"WF-07 Atención humana\", \"WF-08 Solicitudes\", \"SUB-01 Enviar Telegram\"] }}",
+              "type": "array"
+            },
+            {
+              "id": "43f7a210-3e13-4d27-8107-f083aae4a03f",
+              "name": "comercio_id",
+              "value": 1,
+              "type": "number"
+            },
+            {
+              "id": "cf2a7888-51e6-429f-b487-dca4baf391b9",
+              "name": "phone_number_id",
+              "value": "8918428824",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "79ff6d99-854b-418a-b118-7b4552773da1",
+      "name": "Configuración",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        336,
+        544
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "var e = $input.first().json;\nvar wf = e.workflow || {};\nvar ex = e.execution || {};\nvar er = ex.error || {};\nvar nombre = wf.name || '';\nvar lista = e.workflows_cliente || [];\nvar esCliente = false;\nfor (var i = 0; i < lista.length; i++) {\n  if (lista[i] === nombre) { esCliente = true; }\n}\nreturn [{ json: {\n  workflow: nombre,\n  workflow_id: wf.id || null,\n  nodo: ex.lastNodeExecuted || '',\n  mensaje_error: er.message || '',\n  execution_id: ex.id || null,\n  execution_url: ex.url || null,\n  comercio_id: e.comercio_id,\n  phone_number_id: e.phone_number_id,\n  es_flujo_cliente: esCliente\n} }];"
+      },
+      "id": "817b78a1-8ae5-4290-a344-dd0fb04cde19",
+      "name": "Preparar datos del error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        592,
+        544
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/eventos_error",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Prefer",
+              "value": "return=minimal"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ origen: $json.workflow + ' / ' + $json.nodo, detalle: $json.mensaje_error, comercio_id: $json.comercio_id }) }}",
+        "options": {}
+      },
+      "id": "8cdd9ba4-b660-40e3-9d99-fa66d1204198",
+      "name": "Registrar en eventos_error",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        864,
+        352
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "Ya4Bdu0DjuhJL6UE",
+          "name": "Supabase account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/rpc/crear_alerta",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Prefer",
+              "value": "return=minimal"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ p_comercio_id: $json.comercio_id, p_wa_id: null, p_tipo: 'error_sistema', p_con_contenido: false, p_detalle: $json.workflow + ' / ' + $json.nodo + ': ' + $json.mensaje_error }) }}",
+        "options": {}
+      },
+      "id": "e05246ec-ca1b-4212-a50c-a38b3d34c3f4",
+      "name": "Alertar al dueño",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        864,
+        512
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "Ya4Bdu0DjuhJL6UE",
+          "name": "Supabase account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "0582c7b0-33b2-4f55-9264-fcbed84a7fac",
+              "leftValue": "={{ $json.es_flujo_cliente }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "245b0300-c9f6-4d44-b213-ef132530c8d8",
+      "name": "¿Error de flujo de cliente?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        864,
+        688
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/rpc/ultimo_cliente_sin_respuesta",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Prefer",
+              "value": "return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ p_comercio_id: $json.comercio_id }) }}",
+        "options": {}
+      },
+      "id": "5ade8878-e834-4bc3-8b34-3d66e2b8d13d",
+      "name": "Buscar último cliente sin respuesta",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1152,
+        608
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Ya4Bdu0DjuhJL6UE",
+          "name": "Supabase account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "c421d204-fce2-487b-b764-b615b84283fd",
+              "leftValue": "={{ !!$json.wa_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "3efdd584-adc6-4e19-b5e2-5241ff9bfed2",
+      "name": "¿Hay cliente afectado?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1408,
+        608
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "var cfg = $('Preparar datos del error').first().json;\nvar r = $input.first().json;\nreturn [{ json: {\n  comercio: { id: cfg.comercio_id, phone_number_id: r.phone_number_id || cfg.phone_number_id },\n  mensaje: { wa_id: r.wa_id },\n  wa: {\n    tipo: 'botones',\n    texto: 'Tuvimos un problema técnico. ¿Qué prefieres?',\n    botones: [ { id: 'MENU', titulo: 'Menú principal' }, { id: 'OP_PERSONA', titulo: 'Hablar con persona' } ]\n  },\n  autor: 'bot',\n  guardar_contenido: false\n} }];"
+      },
+      "id": "e5f6c8bb-157b-4a96-8875-ba9bba2acee9",
+      "name": "Armar: Contingencia",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1696,
+        544
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "QZEDcRJvlb9dfNCd",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/QZEDcRJvlb9dfNCd",
+          "cachedResultName": "SUB-01 Enviar Telegram"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}",
+            "wa": "={{ $json.wa }}",
+            "autor": "={{ $json.autor }}",
+            "guardar_contenido": "={{ $json.guardar_contenido }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "wa",
+              "displayName": "wa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "autor",
+              "displayName": "autor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "guardar_contenido",
+              "displayName": "guardar_contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "dde00986-4d34-429d-a672-d2fa12c95fcd",
+      "name": "Enviar: Contingencia",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1952,
+        544
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "08fa580d-d48e-447d-b2c7-d96f161022a4",
+      "name": "Sin cliente identificable: solo registro y alerta",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1696,
+        752
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "32d86e43-7ed8-434e-b64e-9a65f9a1ea08",
+      "name": "Error interno: solo registro y alerta",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1152,
+        800
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## WF-12 Errores y contingencia\nError Trigger. Registra el error, alerta al dueño y, solo si falló un flujo de cliente, envía contingencia por SUB-01.\n\n### REEMPLAZAR ANTES DE USAR\n1) Credencial Supabase en los 3 nodos HTTP.\n2) URLs https://kqgrgmcvbhasxjpjctvx.supabase.co (3 nodos).\n3) Nodo Configuración: lista exacta de nombres de workflows de cliente, comercio_id y phone_number_id.\n4) ID de SUB-01 en 'Enviar: Contingencia' (ya apunta a SUB-01).\n\nNota: el Error Trigger no trae comercio ni cliente; comercio_id sale del nodo Configuración (MVP de un solo comercio). Este flujo no se asigna como Error Workflow de sí mismo.",
+        "height": 400,
+        "width": 520
+      },
+      "id": "890393e0-326d-4de3-89ea-34dbcc28b281",
+      "name": "Nota WF-12",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Configuración",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configuración": {
+      "main": [
+        [
+          {
+            "node": "Preparar datos del error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar datos del error": {
+      "main": [
+        [
+          {
+            "node": "Registrar en eventos_error",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Alertar al dueño",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "¿Error de flujo de cliente?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Error de flujo de cliente?": {
+      "main": [
+        [
+          {
+            "node": "Buscar último cliente sin respuesta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error interno: solo registro y alerta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar último cliente sin respuesta": {
+      "main": [
+        [
+          {
+            "node": "¿Hay cliente afectado?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Hay cliente afectado?": {
+      "main": [
+        [
+          {
+            "node": "Armar: Contingencia",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Sin cliente identificable: solo registro y alerta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar: Contingencia": {
+      "main": [
+        [
+          {
+            "node": "Enviar: Contingencia",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "2073730a-615e-4f0a-b88e-7bb0d30c7b73",
+  "meta": {
+    "instanceId": "0377e644cf2a884d8c8dbd595763a484cda55998a03ba1ceb5fc410f8bedb2bf"
+  },
+  "nodeGroups": [],
+  "id": "lHMPH9MbHnSvDcnU",
+  "tags": []
+}

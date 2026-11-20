@@ -1,0 +1,729 @@
+{
+  "name": "WF-03 Enrutador por estado",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "comercio",
+              "type": "object"
+            },
+            {
+              "name": "mensaje",
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "id": "e7bc896e-b2b8-4769-acc8-7477058f0c79",
+      "name": "Entrada",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/rpc/obtener_conversacion",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({p_comercio_id:$json.comercio.id,p_wa_id:$json.mensaje.wa_id}) }}",
+        "options": {}
+      },
+      "id": "e1cd31a9-f2b9-4899-919a-d22a6a3dd78c",
+      "name": "Cargar conversación",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        272,
+        224
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "GHBSL4NZxzJsUKti",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/mensajes?id_conversacion=eq.{{ $json.id || 0 }}&select=fecha_mensaje&order=fecha_mensaje.desc&limit=2",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "options": {}
+      },
+      "id": "946efa78-d565-4b5a-bde7-69e9c9fd40e6",
+      "name": "Leer mensajes recientes",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        496,
+        416
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "GHBSL4NZxzJsUKti",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx=$('Entrada').first().json; const conv=$('Cargar conversación').first().json;\n// Reinicio por inactividad: si el mensaje anterior (entrante o saliente) tiene más de MINUTOS_INACTIVIDAD, se vuelve a dar la bienvenida.\nconst MINUTOS_INACTIVIDAD=10;\nconst fechas=$input.all().map(i=>i.json&&i.json.fecha_mensaje).filter(Boolean);\nlet reinicio=false; let horas_inactivo=null;\nif(fechas.length>=2){horas_inactivo=(Date.now()-new Date(fechas[1]).getTime())/3600000; reinicio=(horas_inactivo*60)>=MINUTOS_INACTIVIDAD;}\n// El horario se lee de comercio.horario_atencion (columna del esquema Supabase); si no existe, no se marca fuera de horario.\nconst h=ctx.comercio.horario_atencion||ctx.comercio.horario; let fuera=false;\nif(h&&typeof h==='object'&&Object.keys(h).length){const now=new Date(new Date().toLocaleString('en-US',{timeZone:'America/Bogota'}));\nconst dias=['dom','lun','mar','mie','jue','vie','sab'];const d=h[dias[now.getDay()]];\nconst hm=now.getHours()*60+now.getMinutes();const f=s=>{const [a,b]=String(s).split(':').map(Number);return a*60+b};\nfuera=!d||d.cerrado||hm<f(d.abre)||hm>=f(d.cierra);}\nreturn [{json:{...ctx,conversacion:conv,fuera_horario:fuera,reinicio,horas_inactivo}}];"
+      },
+      "id": "d935bdb9-3b0d-4163-bf52-29d80ffa48df",
+      "name": "Contexto de conversación",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        496,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "nt1",
+              "leftValue": "={{ $json.mensaje.tipo!=='texto' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "d914a027-4791-49cd-9714-cf652bbd2f20",
+      "name": "¿Contenido no textual?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        752,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx=$('Contexto de conversación').first().json;\nreturn [{json:{...ctx,wa:{tipo:'texto',texto:'No puedo procesar ese tipo de archivo. Por favor escribe tu mensaje o pedido.'}}}];"
+      },
+      "id": "68b292ba-6cc3-4bd2-a8fe-717fae546061",
+      "name": "Armar: Pedir texto",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1024,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "u1U4Iam9WNRMZuo5",
+          "cachedResultName": "SUB-01 Enviar Telegram",
+          "cachedResultUrl": "/workflow/u1U4Iam9WNRMZuo5"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}",
+            "wa": "={{ $json.wa }}",
+            "autor": "bot",
+            "guardar_contenido": true
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "wa",
+              "displayName": "wa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "autor",
+              "displayName": "autor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "guardar_contenido",
+              "displayName": "guardar_contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "ddb81283-d265-4d90-b55a-530b97233b3f",
+      "name": "Enviar: Pedir texto",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1248,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "cp1",
+              "leftValue": "={{ $json.conversacion.pausada }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "33212c3f-145b-4ea6-9e5e-4734928ceefb",
+      "name": "¿Conversación pausada?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1136,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kqgrgmcvbhasxjpjctvx.supabase.co/rest/v1/rpc/registrar_mensaje_pausa",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({p_conversacion_id:$json.conversacion.id,p_contenido:$json.mensaje.texto}) }}",
+        "options": {}
+      },
+      "id": "1c8668a7-3b8f-41d0-8393-169576c20e63",
+      "name": "Registrar mensaje en pausa",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1504,
+        96
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "GHBSL4NZxzJsUKti",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const t=($json.mensaje.texto||'').toLowerCase().trim(); const est=$json.conversacion.estado||'MENU';\nconst saludos=['/start','start','hola','inicio','menu','menú'];\nif($json.reinicio||saludos.includes(t)){\n  // Volver a dar la bienvenida: se envía a WF-04 como opción MENU (reinicia el estado y muestra el menú de bienvenida).\n  return [{json:{...$json,mensaje:{...$json.mensaje,texto:'MENU',texto_original:$json.mensaje.texto},ruta:'consultas'}}];\n}\nlet ruta='consultas';\nif(/(cancelar|modificar|cambiar).*(pedido)|solicitud/.test(t)||est==='SOLICITUD'){ruta='solicitud';}\nelse if(est.startsWith('PEDIDO')){ruta='pedido';}\nreturn [{json:{...$json,ruta}}];"
+      },
+      "id": "f1bb2407-7c23-4107-b68d-3fd07b70842c",
+      "name": "Determinar ruta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1504,
+        288
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "r0",
+                    "leftValue": "={{ $json.ruta===\"consultas\" }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "consultas"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "r1",
+                    "leftValue": "={{ $json.ruta===\"pedido\" }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "pedido"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "r2",
+                    "leftValue": "={{ $json.ruta===\"solicitud\" }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "solicitud"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "otro"
+        }
+      },
+      "id": "d3f37760-cc24-4c88-a124-3a8b1e1adf3c",
+      "name": "Ruta por estado",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1728,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1mreiLAc2yuZttOP",
+          "cachedResultName": "WF-04 Menú y consultas",
+          "cachedResultUrl": "/workflow/1mreiLAc2yuZttOP"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}",
+            "conversacion": "={{ $json.conversacion }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "conversacion",
+              "displayName": "conversacion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "c6ef6517-0065-4f51-91d0-f8c59d3fff6d",
+      "name": "Ir a WF-04 (menú y consultas)",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1952,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "BU8DLJQDWmsxoJpy",
+          "cachedResultName": "WF-06 Construcción del pedido",
+          "cachedResultUrl": "/workflow/BU8DLJQDWmsxoJpy"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "b995417b-c630-444e-b5a0-4542b28b4517",
+      "name": "Ir a WF-06 (pedido)",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1952,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "AVKWUi90K0j3IeRe",
+          "cachedResultName": "WF-08 Solicitudes",
+          "cachedResultUrl": "/workflow/AVKWUi90K0j3IeRe"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "comercio": "={{ $json.comercio }}",
+            "mensaje": "={{ $json.mensaje }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "comercio",
+              "displayName": "comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "f2d9df21-2870-40f6-8156-9a22c80b54a0",
+      "name": "Ir a WF-08 (solicitudes)",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1952,
+        384
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "a5884275-b91b-4d88-9c58-fd5e9db93606",
+      "name": "Ruta desconocida",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1952,
+        576
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Entrada": {
+      "main": [
+        [
+          {
+            "node": "Cargar conversación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cargar conversación": {
+      "main": [
+        [
+          {
+            "node": "Leer mensajes recientes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer mensajes recientes": {
+      "main": [
+        [
+          {
+            "node": "Contexto de conversación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contexto de conversación": {
+      "main": [
+        [
+          {
+            "node": "¿Contenido no textual?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Contenido no textual?": {
+      "main": [
+        [
+          {
+            "node": "Armar: Pedir texto",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "¿Conversación pausada?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar: Pedir texto": {
+      "main": [
+        [
+          {
+            "node": "Enviar: Pedir texto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Conversación pausada?": {
+      "main": [
+        [
+          {
+            "node": "Registrar mensaje en pausa",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Determinar ruta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Determinar ruta": {
+      "main": [
+        [
+          {
+            "node": "Ruta por estado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ruta por estado": {
+      "main": [
+        [
+          {
+            "node": "Ir a WF-04 (menú y consultas)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ir a WF-06 (pedido)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ir a WF-08 (solicitudes)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ruta desconocida",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "be4da53c-5b4e-48e0-8ef0-6a848f6878d4",
+  "meta": {
+    "instanceId": "4513e4389da9632a75fc05a757b2c03560d5b2931684deab91f507e8053ea587"
+  },
+  "nodeGroups": [
+    {
+      "id": "f3f5bb43-10b2-457b-9437-14b168930f9e",
+      "name": "Cargar contexto",
+      "nodeIds": [
+        "e1cd31a9-f2b9-4899-919a-d22a6a3dd78c",
+        "946efa78-d565-4b5a-bde7-69e9c9fd40e6",
+        "d935bdb9-3b0d-4163-bf52-29d80ffa48df"
+      ],
+      "description": "Carga el estado de la conversación, detecta si el cliente vuelve tras inactividad y calcula el horario"
+    },
+    {
+      "id": "4cc13c6b-bb00-4930-a73f-c658dafcd626",
+      "name": "Pedir texto",
+      "nodeIds": [
+        "68b292ba-6cc3-4bd2-a8fe-717fae546061",
+        "ddb81283-d265-4d90-b55a-530b97233b3f"
+      ],
+      "description": "Si el cliente envía imagen o audio, le pide escribir su mensaje"
+    }
+  ],
+  "id": "tq8ybCCGhmkNkBFX",
+  "tags": []
+}
